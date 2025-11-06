@@ -1,8 +1,11 @@
-## Minimal Machine Learning Framework
+# Machine Learning Framework
 Author: Evan Brown
 
-# Package Information
+## Package Information
 
 
-# Machine Learning Algorithms
+## Machine Learning Algorithms
+### Supervised Algorithms
 - KNN
+
+### Unsupervised Algorithms

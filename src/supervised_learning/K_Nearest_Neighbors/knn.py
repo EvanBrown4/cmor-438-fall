@@ -1,8 +1,7 @@
 """
 knn() trains a knn model on the values given.
 """
-from .metrics import euclidean_dist, manhattan_dist
-from .preprocess import train_test_split, normalize, scale
+from src.helpers import *
 import numpy as np
 
 def knn(x: np.array, y: np.array, dist: "euclidean"):
