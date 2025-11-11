@@ -83,11 +83,15 @@ def train_test_split(
         train_idxs = []
         test_idxs = []
         for _, idxs in label_to_idx.items():
+            n = len(idxs)
             if shuffle:
-                rng.shuffle(idxs) # Shuffle within class.
-            test_quant = int(np.ceil(x_len * test_size))
-            train_idxs.append(idxs[test_quant:])
-            test_idxs.append(idxs[:test_quant])
+                rng.shuffle(idxs) # n * test_size))
+            train_idxs.append(idxs[:-test_quant])
+            test_idxs.append(idxs[-test_quant:])
+
+        # Flatten idx arrays.
+        train_idxs = np.concatenate(train_idxs)
+        test_idxs = np.concatenate(test_idxs)
         X_train = X[train_idxs]
         X_test = X[test_idxs]
         if y is not None:
@@ -101,8 +105,8 @@ def train_test_split(
             rng = np.random.default_rng(random_state)
             rng.shuffle(idxs)
         test_quant = int(np.ceil(x_len * test_size))
-        train_idxs = idxs[test_quant:]
-        test_idxs = idxs[:test_quant]
+        train_idxs = idxs[:-test_quant]
+        test_idxs = idxs[-test_quant:]
 
         if y is not None:
             X_train = X[train_idxs]
