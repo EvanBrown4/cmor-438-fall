@@ -1,7 +1,7 @@
 import numpy as np
 from src.utilities import *
 
-def knn(x, y, dist: "euclidean"):
+def knn(x, y, dist = "euclidean"):
     """
     x and y expected: numpy array
     """
