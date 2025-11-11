@@ -14,7 +14,7 @@ concurrency:
 
 jobs:
   tests:
-    name: Python ${{ matrix.python-version }} • Ubuntu
+    name: Python ${{ matrix.python-version }} - Ubuntu
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
