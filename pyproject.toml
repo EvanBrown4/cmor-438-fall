@@ -24,7 +24,7 @@ where = ["src"]
 [tool.pytest.ini_options]
 addopts = "--doctest-modules"
 doctest_optionflags = ["NORMALIZE_WHITESPACE", "ELLIPSIS"]
-testpaths = ["tests"]
+testpaths = ["test/"]
 pythonpath = [
     "src"
 ]

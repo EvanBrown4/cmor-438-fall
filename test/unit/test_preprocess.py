@@ -257,7 +257,7 @@ def test_tts_invalid_test_size_one():
     with pytest.raises((ValueError, AssertionError)):
         train_test_split(X, y, test_size=1.0)
 
-def test_tts_invalid_test_size_negative(self):
+def test_tts_invalid_test_size_negative():
     """Test that negative test_size raises an error"""
     X = np.array([[1, 2], [3, 4], [5, 6]])
     y = np.array([0, 1, 0])
