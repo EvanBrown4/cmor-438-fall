@@ -156,7 +156,7 @@ def test_l2_2d():
     
     assert result.shape == x.shape
 
-def test_1d_array(self):
+def test_1d_array():
     """Test with 1D array"""
     x = np.array([1.0, 2.0, 3.0, 4.0, 5.0])
     result = normalize(x, method="zscore")
@@ -164,7 +164,7 @@ def test_1d_array(self):
     assert result.ndim == 1
     assert result.shape == x.shape
 
-def test_2d_array(self):
+def test_2d_array():
     """Test with 2D array"""
     x = np.array([[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]])
     result = normalize(x, method="zscore")
@@ -172,21 +172,21 @@ def test_2d_array(self):
     assert result.ndim == 2
     assert result.shape == x.shape
 
-def test_0d_array(self):
+def test_0d_array():
     """Test with 0D array (scalar)"""
     x = np.array(5.0)
     
     with pytest.raises(ValueError, match="normalize currently supports only 1D or 2D"):
         normalize(x)
 
-def test_3d_array(self):
+def test_3d_array():
     """Test with 3D array"""
     x = np.array([[[1.0, 2.0], [3.0, 4.0]]])
     
     with pytest.raises(ValueError, match="normalize currently supports only 1D or 2D"):
         normalize(x)
 
-def test_axis_1_with_1d_array(self):
+def test_axis_1_with_1d_array():
     """Test that axis=1 with 1D array raises error"""
     x = np.array([1.0, 2.0, 3.0])
     
@@ -246,7 +246,7 @@ def test_feature_range_given_for_non_minmax():
 ## axis Parameter Tests
 #------------------------------
 
-def test_axis_none_1d(self):
+def test_axis_none_1d():
     """Test axis=None on 1D array"""
     x = np.array([1.0, 2.0, 3.0, 4.0, 5.0])
     result = normalize(x, method="zscore", axis=None)
@@ -254,7 +254,7 @@ def test_axis_none_1d(self):
     assert result.shape == x.shape
     assert np.allclose(result.mean(), 0, atol=1e-10)
 
-def test_axis_none_2d(self):
+def test_axis_none_2d():
     """Test axis=None on 2D array (should default to 0)"""
     x = np.array([[1.0, 2.0], [3.0, 4.0]])
     result = normalize(x, method="zscore", axis=None)
@@ -263,7 +263,7 @@ def test_axis_none_2d(self):
     # Should normalize per column (axis=0)
     assert np.allclose(result.mean(axis=0), 0, atol=1e-10)
 
-def test_axis_0_2d(self):
+def test_axis_0_2d():
     """Test axis=0 on 2D array (normalize per column)"""
     x = np.array([[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]])
     result = normalize(x, method="zscore", axis=0)
@@ -272,7 +272,7 @@ def test_axis_0_2d(self):
     # Each column should have mean 0
     assert np.allclose(result.mean(axis=0), 0, atol=1e-10)
 
-def test_axis_1_2d(self):
+def test_axis_1_2d():
     """Test axis=1 on 2D array (normalize per row)"""
     x = np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]])
     result = normalize(x, method="zscore", axis=1)
@@ -286,70 +286,70 @@ def test_axis_1_2d(self):
 ## Invalid Inputs Tests
 #------------------------------
 
-def test_invalid_x_empty_array(self):
+def test_invalid_x_empty_array():
     """Test with empty array"""
     x = np.array([])
     
     with pytest.raises(ValueError, match="Cannot normalize a 0-length"):
         normalize(x)
 
-def test_invalid_x_empty_matrix(self):
+def test_invalid_x_empty_matrix():
     """Test with empty matrix"""
     x = np.array([[]]).reshape(0, 2)
     
     with pytest.raises(ValueError, match="Cannot normalize a 0-length"):
         normalize(x)
 
-def test_invalid_method(self):
+def test_invalid_method():
     """Test with invalid method"""
     x = np.array([1.0, 2.0, 3.0])
     
     with pytest.raises(ValueError, match="'method' must be one of"):
         normalize(x, method="invalid") # type: ignore
 
-def test_invalid_axis_value(self):
+def test_invalid_axis_value():
     """Test with invalid axis value"""
     x = np.array([1.0, 2.0, 3.0])
     
     with pytest.raises(ValueError, match="'axis' must be 0, 1, or None"):
         normalize(x, axis=2) # type: ignore
 
-def test_invalid_axis_negative(self):
+def test_invalid_axis_negative():
     """Test with negative axis value"""
     x = np.array([1.0, 2.0, 3.0])
     
     with pytest.raises(ValueError, match="'axis' must be 0, 1, or None"):
         normalize(x, axis=-1) # type: ignore
 
-def test_invalid_feature_range_not_tuple(self):
+def test_invalid_feature_range_not_tuple():
     """Test with feature_range not a tuple"""
     x = np.array([1.0, 2.0, 3.0])
     
     with pytest.raises(TypeError, match="'feature_range' must be a tuple"):
         normalize(x, method="minmax", feature_range=[0, 1]) # type: ignore
 
-def test_invalid_feature_range_wrong_length(self):
+def test_invalid_feature_range_wrong_length():
     """Test with feature_range of wrong length"""
     x = np.array([1.0, 2.0, 3.0])
     
     with pytest.raises(TypeError, match="'feature_range' must be a tuple of two numbers"):
         normalize(x, method="minmax", feature_range=(0, 1, 2)) # type: ignore
 
-def test_invalid_feature_range_non_numeric(self):
+def test_invalid_feature_range_non_numeric():
     """Test with non-numeric feature_range elements"""
     x = np.array([1.0, 2.0, 3.0])
     
     with pytest.raises(TypeError, match="'feature_range' values must be numeric"):
         normalize(x, method="minmax", feature_range=("0", "1")) # type: ignore
 
-def test_invalid_feature_range_min_greater_than_max(self):
+def test_invalid_feature_range_min_greater_than_max():
     """Test with min > max in feature_range"""
     x = np.array([1.0, 2.0, 3.0])
     
     with pytest.raises(ValueError, match="Min value for feature_range must be less than max"):
         normalize(x, method="minmax", feature_range=(1.0, 0.0))
 
-def test_invalid_feature_range_min_equals_max(self):
+def test_invalid_feature_range_min_equals_max():
     """Test with min = max in feature_range"""
     x = np.array([1.0, 2.0, 3.0])
     
@@ -361,7 +361,7 @@ def test_invalid_feature_range_min_equals_max(self):
 ## Zero Division Tests
 #------------------------------
 
-def test_zscore_zero_stddev_1d(self):
+def test_zscore_zero_stddev_1d():
     """Test z-score when std dev is 0 (constant array) 1D"""
     x = np.array([5.0, 5.0, 5.0, 5.0])
     result = normalize(x, method="zscore")
@@ -372,7 +372,7 @@ def test_zscore_zero_stddev_1d(self):
     # Check behavior - typically would be nan
     assert np.all(np.isnan(result)) or np.all(result == 0)
 
-def test_zscore_zero_stddev_2d_axis0(self):
+def test_zscore_zero_stddev_2d_axis0():
     """Test z-score when std dev is 0 for some columns (2D, axis=0)"""
     x = np.array([[5.0, 1.0], [5.0, 2.0], [5.0, 3.0]])
     result = normalize(x, method="zscore", axis=0)
@@ -382,7 +382,7 @@ def test_zscore_zero_stddev_2d_axis0(self):
     assert np.all(np.isnan(result[:, 0])) or np.all(result[:, 0] == 0)
     assert np.allclose(result[:, 1].mean(), 0, atol=1e-10)
 
-def test_zscore_zero_stddev_2d_axis1(self):
+def test_zscore_zero_stddev_2d_axis1():
     """Test z-score when std dev is 0 for some rows (2D, axis=1)"""
     x = np.array([[5.0, 5.0, 5.0], [1.0, 2.0, 3.0]])
     result = normalize(x, method="zscore", axis=1)
@@ -391,7 +391,7 @@ def test_zscore_zero_stddev_2d_axis1(self):
     # First row has std=0
     assert np.all(np.isnan(result[0, :])) or np.all(result[0, :] == 0)
 
-def test_minmax_zero_range_1d(self):
+def test_minmax_zero_range_1d():
     """Test minmax when range is 0 (constant array) 1D"""
     x = np.array([5.0, 5.0, 5.0, 5.0])
     result = normalize(x, method="minmax")
@@ -401,7 +401,7 @@ def test_minmax_zero_range_1d(self):
     # Should return lower bound of feature_range
     assert np.allclose(result, 0.0)
 
-def test_minmax_zero_range_2d_axis0(self):
+def test_minmax_zero_range_2d_axis0():
     """Test minmax when range is 0 for some columns (2D, axis=0)"""
     x = np.array([[5.0, 1.0], [5.0, 2.0], [5.0, 3.0]])
     result = normalize(x, method="minmax", axis=0)
@@ -413,7 +413,7 @@ def test_minmax_zero_range_2d_axis0(self):
     assert np.isclose(result[:, 1].min(), 0.0)
     assert np.isclose(result[:, 1].max(), 1.0)
 
-def test_minmax_zero_range_2d_axis1(self):
+def test_minmax_zero_range_2d_axis1():
     """Test minmax when range is 0 for some rows (2D, axis=1)"""
     x = np.array([[5.0, 5.0, 5.0], [1.0, 2.0, 3.0]])
     result = normalize(x, method="minmax", axis=1)
@@ -422,7 +422,7 @@ def test_minmax_zero_range_2d_axis1(self):
     # First row has range=0
     assert np.allclose(result[0, :], 0.0)
 
-def test_robust_zero_iqr_1d(self):
+def test_robust_zero_iqr_1d():
     """Test robust when IQR is 0 (1D)"""
     x = np.array([5.0, 5.0, 5.0, 5.0, 5.0])
     result = normalize(x, method="robust")
@@ -431,7 +431,7 @@ def test_robust_zero_iqr_1d(self):
     # When IQR=0, implementation prevents division by zero
     assert np.allclose(result, 0.0)
 
-def test_robust_zero_iqr_2d_axis0(self):
+def test_robust_zero_iqr_2d_axis0():
     """Test robust when IQR is 0 for some columns (2D, axis=0)"""
     x = np.array([[5.0, 1.0], [5.0, 2.0], [5.0, 3.0], [5.0, 4.0]])
     result = normalize(x, method="robust", axis=0)
@@ -440,7 +440,7 @@ def test_robust_zero_iqr_2d_axis0(self):
     # First column has IQR=0
     assert np.allclose(result[:, 0], 0.0)
 
-def test_robust_zero_iqr_2d_axis1(self):
+def test_robust_zero_iqr_2d_axis1():
     """Test robust when IQR is 0 for some rows (2D, axis=1)"""
     x = np.array([[5.0, 5.0, 5.0], [1.0, 2.0, 3.0]])
     result = normalize(x, method="robust", axis=1)
@@ -449,7 +449,7 @@ def test_robust_zero_iqr_2d_axis1(self):
     # First row has IQR=0
     assert np.allclose(result[0, :], 0.0)
 
-def test_l1_zero_sum_1d(self):
+def test_l1_zero_sum_1d():
     """Test L1 when sum of absolute values is 0 (all zeros) 1D"""
     x = np.array([0.0, 0.0, 0.0, 0.0])
     result = normalize(x, method="l1")
@@ -458,7 +458,7 @@ def test_l1_zero_sum_1d(self):
     # When sum=0, implementation prevents division by zero
     assert np.allclose(result, 0.0)
 
-def test_l1_zero_sum_2d_axis0(self):
+def test_l1_zero_sum_2d_axis0():
     """Test L1 when sum is 0 for some columns (2D, axis=0)"""
     x = np.array([[0.0, 1.0], [0.0, 2.0], [0.0, 3.0]])
     result = normalize(x, method="l1", axis=0)
@@ -469,7 +469,7 @@ def test_l1_zero_sum_2d_axis0(self):
     # Second column should be normalized
     assert np.isclose(np.sum(np.abs(result[:, 1])), 1.0)
 
-def test_l1_zero_sum_2d_axis1(self):
+def test_l1_zero_sum_2d_axis1():
     """Test L1 when sum is 0 for some rows (2D, axis=1)"""
     x = np.array([[0.0, 0.0, 0.0], [1.0, 2.0, 3.0]])
     result = normalize(x, method="l1", axis=1)
@@ -478,7 +478,7 @@ def test_l1_zero_sum_2d_axis1(self):
     # First row has sum=0
     assert np.allclose(result[0, :], 0.0)
 
-def test_l2_zero_sum_squares_1d(self):
+def test_l2_zero_sum_squares_1d():
     """Test L2 when sum of squares is 0 (all zeros) 1D"""
     x = np.array([0.0, 0.0, 0.0, 0.0])
     result = normalize(x, method="l2")
@@ -487,7 +487,7 @@ def test_l2_zero_sum_squares_1d(self):
     # When sum=0, implementation prevents division by zero
     assert np.allclose(result, 0.0)
 
-def test_l2_zero_sum_squares_2d_axis0(self):
+def test_l2_zero_sum_squares_2d_axis0():
     """Test L2 when sum of squares is 0 for some columns (2D, axis=0)"""
     x = np.array([[0.0, 1.0], [0.0, 2.0], [0.0, 3.0]])
     result = normalize(x, method="l2", axis=0)
@@ -498,7 +498,7 @@ def test_l2_zero_sum_squares_2d_axis0(self):
     # Second column should be normalized
     assert np.isclose(np.sqrt(np.sum(result[:, 1]**2)), 1.0)
 
-def test_l2_zero_sum_squares_2d_axis1(self):
+def test_l2_zero_sum_squares_2d_axis1():
     """Test L2 when sum of squares is 0 for some rows (2D, axis=1)"""
     x = np.array([[0.0, 0.0, 0.0], [1.0, 2.0, 3.0]])
     result = normalize(x, method="l2", axis=1)
@@ -512,42 +512,42 @@ def test_l2_zero_sum_squares_2d_axis1(self):
 ## Different x Data Type Tests
 #------------------------------
 
-def test_non_numeric_dtype_string(self):
+def test_non_numeric_dtype_string():
     """Test with string array"""
     x = np.array(["1", "2", "3"])
     
     with pytest.raises(ValueError, match="Cannot normalize a non-number array"):
         normalize(x)
 
-def test_non_numeric_dtype_object(self):
+def test_non_numeric_dtype_object():
     """Test with object array"""
     x = np.array([{"a": 1}, {"a": 2}])
     
     with pytest.raises(ValueError, match="Cannot normalize a non-number array"):
         normalize(x)
 
-def test_integer_input_returns_float(self):
+def test_integer_input_returns_float():
     """Test that integer input returns float output"""
     x = np.array([1, 2, 3, 4, 5])
     result = normalize(x, method="zscore")
     
     assert result.dtype == np.float64
 
-def test_integer_2d_input_returns_float(self):
+def test_integer_2d_input_returns_float():
     """Test that integer 2D input returns float output"""
     x = np.array([[1, 2], [3, 4], [5, 6]])
     result = normalize(x, method="minmax")
     
     assert result.dtype == np.float64
 
-def test_mixed_int_float_list(self):
+def test_mixed_int_float_list():
     """Test with mixed int/float list"""
     x = [1, 2.0, 3, 4.0, 5]
     result = normalize(x, method="zscore")
     
     assert result.dtype == np.float64
 
-def test_nan_in_array(self):
+def test_nan_in_array():
     """Test with NaN values"""
     x = np.array([1.0, 2.0, np.nan, 4.0, 5.0])
     result = normalize(x, method="zscore")
@@ -555,7 +555,7 @@ def test_nan_in_array(self):
     # NaN should propagate
     assert np.isnan(result).any()
 
-def test_inf_in_array(self):
+def test_inf_in_array():
     """Test with inf values"""
     x = np.array([1.0, 2.0, np.inf, 4.0, 5.0])
     result = normalize(x, method="zscore")
@@ -563,7 +563,7 @@ def test_inf_in_array(self):
     # Inf should affect the result
     assert np.isinf(result).any() or np.isnan(result).any()
 
-def test_negative_inf_in_array(self):
+def test_negative_inf_in_array():
     """Test with negative inf values"""
     x = np.array([1.0, 2.0, -np.inf, 4.0, 5.0])
     result = normalize(x, method="minmax")
@@ -575,7 +575,7 @@ def test_negative_inf_in_array(self):
 ## Non-square Array Behavior Tests
 #------------------------------
 
-def test_non_square_axis0(self):
+def test_non_square_axis0():
     """Test broadcasting with non-square array, axis=0"""
     x = np.array([[1.0, 2.0, 3.0, 4.0, 5.0],
                     [6.0, 7.0, 8.0, 9.0, 10.0],
@@ -588,7 +588,7 @@ def test_non_square_axis0(self):
         assert np.allclose(result[:, col].mean(), 0, atol=1e-10)
         assert np.allclose(result[:, col].std(), 1, atol=1e-10)
 
-def test_non_square_axis1(self):
+def test_non_square_axis1():
     """Test broadcasting with non-square array, axis=1"""
     x = np.array([[1.0, 2.0, 3.0, 4.0, 5.0],
                     [6.0, 7.0, 8.0, 9.0, 10.0],
@@ -601,7 +601,7 @@ def test_non_square_axis1(self):
         assert np.allclose(result[row, :].mean(), 0, atol=1e-10)
         assert np.allclose(result[row, :].std(), 1, atol=1e-10)
 
-def test_non_square_minmax_axis0(self):
+def test_non_square_minmax_axis0():
     """Test minmax with non-square array, axis=0"""
     x = np.array([[1.0, 2.0, 3.0, 4.0, 5.0],
                     [2.0, 3.0, 4.0, 5.0, 6.0],
@@ -614,7 +614,7 @@ def test_non_square_minmax_axis0(self):
         assert np.isclose(result[:, col].min(), 0.0)
         assert np.isclose(result[:, col].max(), 1.0)
 
-def test_non_square_minmax_axis1(self):
+def test_non_square_minmax_axis1():
     """Test minmax with non-square array, axis=1"""
     x = np.array([[1.0, 2.0, 3.0, 4.0, 5.0],
                     [2.0, 3.0, 4.0, 5.0, 6.0],
@@ -632,7 +632,7 @@ def test_non_square_minmax_axis1(self):
 ## Constant Column/Row Tests
 #------------------------------
 
-def test_minmax_constant_column_axis0(self):
+def test_minmax_constant_column_axis0():
     """Test minmax where one column is constant, others vary (axis=0)"""
     x = np.array([[7.0, 1.0, 5.0],
                     [7.0, 2.0, 10.0],
@@ -650,7 +650,7 @@ def test_minmax_constant_column_axis0(self):
     assert np.isclose(result[:, 2].min(), 0.0)
     assert np.isclose(result[:, 2].max(), 1.0)
 
-def test_minmax_constant_row_axis1(self):
+def test_minmax_constant_row_axis1():
     """Test minmax where one row is constant, others vary (axis=1)"""
     x = np.array([[5.0, 5.0, 5.0, 5.0],
                     [1.0, 2.0, 3.0, 4.0],
@@ -667,7 +667,7 @@ def test_minmax_constant_row_axis1(self):
     assert np.isclose(result[2, :].min(), 0.0)
     assert np.isclose(result[2, :].max(), 1.0)
 
-def test_zscore_constant_column_axis0(self):
+def test_zscore_constant_column_axis0():
     """Test zscore where one column is constant (axis=0)"""
     x = np.array([[7.0, 1.0],
                     [7.0, 2.0],
@@ -686,7 +686,7 @@ def test_zscore_constant_column_axis0(self):
 ## Robust Normalization With Very Small Sample Tests
 #------------------------------
 
-def test_robust_size_1(self):
+def test_robust_size_1():
     """Test robust normalization with single element"""
     x = np.array([5.0])
     result = normalize(x, method="robust")
@@ -695,7 +695,7 @@ def test_robust_size_1(self):
     # With one element, median=element, IQR=0
     assert np.allclose(result, 0.0)
 
-def test_robust_size_2_1d(self):
+def test_robust_size_2_1d():
     """Test robust normalization with 2 elements (1D)"""
     x = np.array([1.0, 5.0])
     result = normalize(x, method="robust")
@@ -704,7 +704,7 @@ def test_robust_size_2_1d(self):
     # Should handle gracefully
     assert not np.any(np.isinf(result))
 
-def test_robust_size_2_2d_axis0(self):
+def test_robust_size_2_2d_axis0():
     """Test robust normalization with 2 rows (2D, axis=0)"""
     x = np.array([[1.0, 2.0], [3.0, 4.0]])
     result = normalize(x, method="robust", axis=0)
@@ -713,7 +713,7 @@ def test_robust_size_2_2d_axis0(self):
     # Should handle gracefully
     assert not np.any(np.isinf(result))
 
-def test_robust_size_2_2d_axis1(self):
+def test_robust_size_2_2d_axis1():
     """Test robust normalization with 2 columns (2D, axis=1)"""
     x = np.array([[1.0, 3.0]])
     result = normalize(x, method="robust", axis=1)
@@ -722,7 +722,7 @@ def test_robust_size_2_2d_axis1(self):
     # Should handle gracefully
     assert not np.any(np.isinf(result))
 
-def test_robust_size_3(self):
+def test_robust_size_3():
     """Test robust normalization with 3 elements"""
     x = np.array([1.0, 2.0, 3.0])
     result = normalize(x, method="robust")
@@ -738,7 +738,7 @@ def test_robust_size_3(self):
 ## Additional Edge Case Tests
 #------------------------------
 
-def test_single_row_2d(self):
+def test_single_row_2d():
     """Test with single row 2D array"""
     x = np.array([[1.0, 2.0, 3.0, 4.0, 5.0]])
     result = normalize(x, method="zscore", axis=0)
@@ -747,7 +747,7 @@ def test_single_row_2d(self):
     # With one row, std per column is 0
     assert np.all(np.isnan(result)) or np.all(result == 0)
 
-def test_single_column_2d(self):
+def test_single_column_2d():
     """Test with single column 2D array"""
     x = np.array([[1.0], [2.0], [3.0], [4.0], [5.0]])
     result = normalize(x, method="zscore", axis=0)
@@ -756,7 +756,7 @@ def test_single_column_2d(self):
     assert np.allclose(result.mean(), 0, atol=1e-10)
     assert np.allclose(result.std(), 1, atol=1e-10)
 
-def test_minmax_with_negative_values(self):
+def test_minmax_with_negative_values():
     """Test minmax with negative values"""
     x = np.array([-5.0, -2.0, 0.0, 2.0, 5.0])
     result = normalize(x, method="minmax")
@@ -764,7 +764,7 @@ def test_minmax_with_negative_values(self):
     assert np.isclose(result.min(), 0.0)
     assert np.isclose(result.max(), 1.0)
 
-def test_minmax_custom_range_with_floats(self):
+def test_minmax_custom_range_with_floats():
     """Test minmax with float feature_range"""
     x = np.array([1.0, 2.0, 3.0, 4.0, 5.0])
     result = normalize(x, method="minmax", feature_range=(0.5, 2.5))
@@ -772,7 +772,7 @@ def test_minmax_custom_range_with_floats(self):
     assert np.isclose(result.min(), 0.5)
     assert np.isclose(result.max(), 2.5)
 
-def test_minmax_custom_range_with_ints(self):
+def test_minmax_custom_range_with_ints():
     """Test minmax with integer feature_range"""
     x = np.array([1.0, 2.0, 3.0, 4.0, 5.0])
     result = normalize(x, method="minmax", feature_range=(0, 10))
@@ -780,7 +780,7 @@ def test_minmax_custom_range_with_ints(self):
     assert np.isclose(result.min(), 0.0)
     assert np.isclose(result.max(), 10.0)
 
-def test_list_input(self):
+def test_list_input():
     """Test with list input"""
     x = [1.0, 2.0, 3.0, 4.0, 5.0]
     result = normalize(x, method="zscore")
@@ -788,7 +788,7 @@ def test_list_input(self):
     assert isinstance(result, np.ndarray)
     assert np.allclose(result.mean(), 0, atol=1e-10)
 
-def test_tuple_input(self):
+def test_tuple_input():
     """Test with tuple input"""
     x = (1.0, 2.0, 3.0, 4.0, 5.0)
     result = normalize(x, method="zscore")
@@ -796,7 +796,7 @@ def test_tuple_input(self):
     assert isinstance(result, np.ndarray)
     assert np.allclose(result.mean(), 0, atol=1e-10)
 
-def test_nested_list_input(self):
+def test_nested_list_input():
     """Test with nested list input"""
     x = [[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]]
     result = normalize(x, method="minmax")
@@ -804,7 +804,7 @@ def test_nested_list_input(self):
     assert isinstance(result, np.ndarray)
     assert result.shape == (3, 2)
 
-def test_very_large_values(self):
+def test_very_large_values():
     """Test with very large values"""
     x = np.array([1e10, 2e10, 3e10, 4e10, 5e10])
     result = normalize(x, method="zscore")
@@ -812,7 +812,7 @@ def test_very_large_values(self):
     assert np.allclose(result.mean(), 0, atol=1e-5)
     assert np.allclose(result.std(), 1, atol=1e-5)
 
-def test_very_small_values(self):
+def test_very_small_values():
     """Test with very small values"""
     x = np.array([1e-10, 2e-10, 3e-10, 4e-10, 5e-10])
     result = normalize(x, method="minmax")
@@ -820,7 +820,7 @@ def test_very_small_values(self):
     assert np.isclose(result.min(), 0.0)
     assert np.isclose(result.max(), 1.0)
 
-def test_all_methods_preserve_shape(self):
+def test_all_methods_preserve_shape():
     """Test that all methods preserve input shape"""
     x = np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]])
     
