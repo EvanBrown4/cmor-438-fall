@@ -82,7 +82,7 @@ def train_test_split(
         label_to_idx = {label: np.where(stratify == label)[0] for label in unique}
         train_idxs = []
         test_idxs = []
-        for _, idxs in label_to_idx:
+        for _, idxs in label_to_idx.items():
             if shuffle:
                 rng.shuffle(idxs) # Shuffle within class.
             test_quant = int(np.ceil(x_len * test_size))
@@ -96,9 +96,9 @@ def train_test_split(
             return (X_train, X_test, y_train, y_test)
         return (X_train, X_test)
     else:
+        idxs = np.arange(x_len)
         if shuffle:
             rng = np.random.default_rng(random_state)
-            idxs = np.arange(x_len)
             rng.shuffle(idxs)
         test_quant = int(np.ceil(x_len * test_size))
         train_idxs = idxs[test_quant:]
