@@ -84,8 +84,9 @@ def train_test_split(
         test_idxs = []
         for _, idxs in label_to_idx.items():
             n = len(idxs)
+            test_quant = int(np.ceil(n * test_size))
             if shuffle:
-                rng.shuffle(idxs) # n * test_size))
+                rng.shuffle(idxs)
             train_idxs.append(idxs[:-test_quant])
             test_idxs.append(idxs[-test_quant:])
 
