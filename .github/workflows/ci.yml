@@ -4,7 +4,7 @@ on:
   pull_request:
     branches: [ main, master ]
   push:
-    branches: ['**']
+    branches: [ main, master ]
   workflow_dispatch:
 
 # avoid duplicate runs on the same PR update
