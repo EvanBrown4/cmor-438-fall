@@ -13,10 +13,11 @@ train_test_split
 import numpy as np
 import pandas as pd
 from typing import Optional, Union, Literal
-import warnings
+from warnings import warn
 
 __all__ = [
-    'train_test_split'
+    'train_test_split',
+    'normalize'
 ]
 
 ArrayLike = Union[list, tuple, np.ndarray, pd.Series, pd.DataFrame]
@@ -145,7 +146,7 @@ def train_test_split(
 
 def normalize(
         x: ArrayLike,
-        method: Literal["zscore", "minmax", "robust", "l1", "l2"] = "zscore",
+        method: str = "zscore",
         axis: Optional[Literal[0,1]] = None,
         feature_range: Optional[tuple[Union[float, int], Union[float, int]]] = None
 ) -> np.ndarray:
@@ -216,7 +217,7 @@ def normalize(
         case "minmax":
             if feature_range is not None:
                 if method != "minmax":
-                    warnings.warn(
+                    warn(
                         f"'feature_range' was provided but will be ignored since method='{method}'. It is only used for 'minmax' normalization.",
                         UserWarning
                     )
