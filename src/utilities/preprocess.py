@@ -57,8 +57,11 @@ def train_test_split(
     """
     X = np.asarray(X)
     x_len = len(X) # Stored here to avoid continuous querying of length.
+
+    if (x_len == 0):
+        raise ValueError("With n_samples=%d and test_size=%d, the resulting train set will be empty.", 0, test_size)
     
-    if not (0 <= test_size <= 1.0):
+    if not (0 < test_size < 1.0):
         raise ValueError("test_size must be a float between 0 and 1 exclusive.")
 
     if stratify is not None and x_len != len(stratify):
