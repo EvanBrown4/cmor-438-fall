@@ -3,7 +3,14 @@ import numpy as np
 import pandas as pd
 from src import train_test_split
 
-def test_tts_standard_x_and_y():
+## train_test_split testing
+
+
+#------------------------------
+## Basic Functionality Tests
+#------------------------------
+
+def test_standard_x_and_y():
     """Test with standard numpy arrays"""
     X = np.array([[1, 2], [3, 4], [5, 6], [7, 8], [9, 10]])
     y = np.array([0, 1, 0, 1, 0])
@@ -15,7 +22,7 @@ def test_tts_standard_x_and_y():
     assert len(X_test) == 1  # 20% of 5 = 1
     assert len(y_test) == 1
 
-def test_tts_no_y_provided():
+def test_no_y_provided():
     """Test with only X provided"""
     X = np.array([[1, 2], [3, 4], [5, 6], [7, 8], [9, 10]])
     
@@ -24,7 +31,7 @@ def test_tts_no_y_provided():
     assert len(X_train) + len(X_test) == len(X)
     assert len(X_test) == 1
 
-def test_tts_multiple_standard_splits():
+def test_multiple_standard_splits():
     """Test multiple standard cases"""
     X = np.arange(100).reshape(50, 2)
     y = np.arange(50)
@@ -36,7 +43,7 @@ def test_tts_multiple_standard_splits():
     assert len(y_train) == 35
     assert len(y_test) == 15
 
-def test_tts_list_x_and_y():
+def test_list_x_and_y():
     """Test with lists"""
     X = [[1, 2], [3, 4], [5, 6], [7, 8], [9, 10]]
     y = [0, 1, 0, 1, 0]
@@ -47,7 +54,7 @@ def test_tts_list_x_and_y():
     assert isinstance(y_train, np.ndarray)
     assert len(X_train) + len(X_test) == len(X)
 
-def test_tts_tuple_x_and_y():
+def test_tuple_x_and_y():
     """Test with tuples"""
     X = tuple([[1, 2], [3, 4], [5, 6], [7, 8], [9, 10]])
     y = tuple([0, 1, 0, 1, 0])
@@ -57,7 +64,7 @@ def test_tts_tuple_x_and_y():
     assert isinstance(X_train, np.ndarray)
     assert isinstance(y_train, np.ndarray)
 
-def test_tts_dataframe_x_and_series_y():
+def test_dataframe_x_and_series_y():
     """Test with pandas DataFrame and Series"""
     X = pd.DataFrame({'a': [1, 2, 3, 4, 5], 'b': [6, 7, 8, 9, 10]})
     y = pd.Series([0, 1, 0, 1, 0])
@@ -68,7 +75,7 @@ def test_tts_dataframe_x_and_series_y():
     assert isinstance(y_train, np.ndarray)
     assert len(X_train) + len(X_test) == len(X)
 
-def test_tts_numpy_x_list_y():
+def test_numpy_x_list_y():
     """Test with numpy array X and list y"""
     X = np.array([[1, 2], [3, 4], [5, 6], [7, 8], [9, 10]])
     y = [0, 1, 0, 1, 0]
@@ -77,7 +84,7 @@ def test_tts_numpy_x_list_y():
     
     assert len(X_train) + len(X_test) == len(X)
 
-def test_tts_list_x_numpy_y():
+def test_list_x_numpy_y():
     """Test with list X and numpy array y"""
     X = [[1, 2], [3, 4], [5, 6], [7, 8], [9, 10]]
     y = np.array([0, 1, 0, 1, 0])
@@ -86,7 +93,7 @@ def test_tts_list_x_numpy_y():
     
     assert len(X_train) + len(X_test) == len(X)
 
-def test_tts_dataframe_x_list_y():
+def test_dataframe_x_list_y():
     """Test with DataFrame X and list y"""
     X = pd.DataFrame({'a': [1, 2, 3, 4, 5], 'b': [6, 7, 8, 9, 10]})
     y = [0, 1, 0, 1, 0]
@@ -96,8 +103,10 @@ def test_tts_dataframe_x_list_y():
     assert len(X_train) + len(X_test) == len(X)
 
 
+#------------------------------
 ## Shuffle and Random State Tests
-def test_tts_shuffle_true():
+#------------------------------
+def test_shuffle_true():
     """Test with shuffle=True"""
     X = np.arange(100).reshape(50, 2)
     y = np.arange(50)
@@ -107,7 +116,7 @@ def test_tts_shuffle_true():
     # Check that the data is actually shuffled
     assert not np.array_equal(y_train, np.arange(40))
 
-def test_tts_shuffle_false():
+def test_shuffle_false():
     """Test with shuffle=False"""
     X = np.arange(100).reshape(50, 2)
     y = np.arange(50)
@@ -118,7 +127,7 @@ def test_tts_shuffle_false():
     assert np.array_equal(y_train, np.arange(40))
     assert np.array_equal(y_test, np.arange(40, 50))
 
-def test_tts_random_state_consistency():
+def test_random_state_consistency():
     """Test that random_state produces consistent results"""
     X = np.arange(100).reshape(50, 2)
     y = np.arange(50)
@@ -131,7 +140,7 @@ def test_tts_random_state_consistency():
     assert np.array_equal(y_train1, y_train2)
     assert np.array_equal(y_test1, y_test2)
 
-def test_tts_no_random_state():
+def test_no_random_state():
     """Test without random_state (should produce different results)"""
     X = np.arange(100).reshape(50, 2)
     y = np.arange(50)
@@ -142,7 +151,7 @@ def test_tts_no_random_state():
     # Should have different ordering (with very high probability)
     assert not np.array_equal(y_train1, y_train2) or not np.array_equal(y_test1, y_test2)
 
-def test_tts_different_random_states():
+def test_different_random_states():
     """Test that different random states produce different results"""
     X = np.arange(100).reshape(50, 2)
     y = np.arange(50)
@@ -152,8 +161,12 @@ def test_tts_different_random_states():
     
     assert not np.array_equal(y_train1, y_train2)
 
+
+#------------------------------
 ## Stratify Tests
-def test_tts_stratify_basic():
+#------------------------------
+
+def test_stratify_basic():
     """Test basic stratified split"""
     X = np.arange(100).reshape(50, 2)
     y = np.array([0] * 25 + [1] * 25)
@@ -172,7 +185,7 @@ def test_tts_stratify_basic():
     assert abs(train_class_0 - train_class_1) <= 1
     assert abs(test_class_0 - test_class_1) <= 1
 
-def test_tts_stratify_multiclass():
+def test_stratify_multiclass():
     """Test stratified split with multiple classes"""
     X = np.arange(150).reshape(50, 3)
     y = np.array([0] * 20 + [1] * 20 + [2] * 10)
@@ -192,7 +205,7 @@ def test_tts_stratify_multiclass():
         assert abs(test_props[i] - original_props[i]) < 0.1
 
 ## Test Size Tests
-def test_tts_test_size_0_5():
+def test_test_size_0_5():
     """Test with 50-50 split"""
     X = np.arange(200).reshape(100, 2)
     y = np.arange(100)
@@ -202,7 +215,7 @@ def test_tts_test_size_0_5():
     assert len(X_train) == 50
     assert len(X_test) == 50
 
-def test_tts_test_size_0_1():
+def test_test_size_0_1():
     """Test with 10% test size"""
     X = np.arange(200).reshape(100, 2)
     y = np.arange(100)
@@ -212,7 +225,7 @@ def test_tts_test_size_0_1():
     assert len(X_test) == 10
     assert len(X_train) == 90
 
-def test_tts_test_size_0_9():
+def test_test_size_0_9():
     """Test with 90% test size"""
     X = np.arange(200).reshape(100, 2)
     y = np.arange(100)
@@ -222,7 +235,7 @@ def test_tts_test_size_0_9():
     assert len(X_test) == 90
     assert len(X_train) == 10
 
-def test_tts_test_size_very_small():
+def test_test_size_very_small():
     """Test with very small test size"""
     X = np.arange(200).reshape(100, 2)
     y = np.arange(100)
@@ -232,8 +245,12 @@ def test_tts_test_size_very_small():
     assert len(X_test) == 1  # Ceiling of 100 * 0.01 = 1
     assert len(X_train) == 99
 
+
+#------------------------------
 ## Invalid Inputs Studying
-def test_tts_mismatched_x_y_lengths():
+#------------------------------
+
+def test_mismatched_x_y_lengths():
     """Test that mismatched X and y lengths raise an error"""
     X = np.array([[1, 2], [3, 4], [5, 6]])
     y = np.array([0, 1])  # Length mismatch
@@ -241,7 +258,7 @@ def test_tts_mismatched_x_y_lengths():
     with pytest.raises((ValueError, AssertionError)):
         train_test_split(X, y, test_size=0.2)
 
-def test_tts_invalid_test_size_zero():
+def test_invalid_test_size_zero():
     """Test that test_size=0 raises an error"""
     X = np.array([[1, 2], [3, 4], [5, 6]])
     y = np.array([0, 1, 0])
@@ -249,7 +266,7 @@ def test_tts_invalid_test_size_zero():
     with pytest.raises((ValueError, AssertionError)):
         train_test_split(X, y, test_size=0.0)
 
-def test_tts_invalid_test_size_one():
+def test_invalid_test_size_one():
     """Test that test_size=1.0 raises an error"""
     X = np.array([[1, 2], [3, 4], [5, 6]])
     y = np.array([0, 1, 0])
@@ -257,7 +274,7 @@ def test_tts_invalid_test_size_one():
     with pytest.raises((ValueError, AssertionError)):
         train_test_split(X, y, test_size=1.0)
 
-def test_tts_invalid_test_size_negative():
+def test_invalid_test_size_negative():
     """Test that negative test_size raises an error"""
     X = np.array([[1, 2], [3, 4], [5, 6]])
     y = np.array([0, 1, 0])
@@ -265,7 +282,7 @@ def test_tts_invalid_test_size_negative():
     with pytest.raises((ValueError, AssertionError)):
         train_test_split(X, y, test_size=-0.1)
 
-def test_tts_invalid_test_size_greater_than_one():
+def test_invalid_test_size_greater_than_one():
     """Test that test_size > 1.0 raises an error"""
     X = np.array([[1, 2], [3, 4], [5, 6]])
     y = np.array([0, 1, 0])
@@ -273,7 +290,7 @@ def test_tts_invalid_test_size_greater_than_one():
     with pytest.raises((ValueError, AssertionError)):
         train_test_split(X, y, test_size=1.5)
 
-def test_tts_invalid_random_state_negative():
+def test_invalid_random_state_negative():
     """Test that negative random_state raises an error"""
     X = np.array([[1, 2], [3, 4], [5, 6]])
     y = np.array([0, 1, 0])
@@ -281,7 +298,7 @@ def test_tts_invalid_random_state_negative():
     with pytest.raises((ValueError, AssertionError)):
         train_test_split(X, y, test_size=0.2, random_state=-1)
 
-def test_tts_invalid_random_state_too_large():
+def test_invalid_random_state_too_large():
     """Test that random_state >= 2^32 raises an error"""
     X = np.array([[1, 2], [3, 4], [5, 6]])
     y = np.array([0, 1, 0])
@@ -289,7 +306,7 @@ def test_tts_invalid_random_state_too_large():
     with pytest.raises((ValueError, AssertionError, OverflowError)):
         train_test_split(X, y, test_size=0.2, random_state=2**32)
 
-def test_tts_size_one_x_and_y():
+def test_size_one_x_and_y():
     """Test with single sample"""
     X = np.array([[1, 2]])
     y = np.array([0])
@@ -300,7 +317,7 @@ def test_tts_size_one_x_and_y():
     assert len(X_test) == 1
     assert len(X_train) == 0
 
-def test_tts_size_zero_x_and_y():
+def test_size_zero_x_and_y():
     """Test with empty arrays"""
     X = np.array([]).reshape(0, 2)
     y = np.array([])
@@ -309,7 +326,7 @@ def test_tts_size_zero_x_and_y():
     with pytest.raises((ValueError, AssertionError, IndexError)):
         train_test_split(X, y, test_size=0.2)
 
-def test_tts_ceiling_behavior():
+def test_ceiling_behavior():
     """Test that ceiling is applied correctly when test_size would result in fractional samples"""
     X = np.arange(6).reshape(3, 2)
     y = np.array([0, 1, 2])
@@ -320,7 +337,7 @@ def test_tts_ceiling_behavior():
     assert len(X_test) == 1
     assert len(X_train) == 2
 
-def test_tts_size_two_with_fifty_percent_split():
+def test_size_two_with_fifty_percent_split():
     """Test with 2 samples and 50% split"""
     X = np.array([[1, 2], [3, 4]])
     y = np.array([0, 1])
@@ -330,7 +347,7 @@ def test_tts_size_two_with_fifty_percent_split():
     assert len(X_test) == 1
     assert len(X_train) == 1
 
-def test_tts_very_small_test_size_resulting_in_zero_without_ceiling():
+def test_very_small_test_size_resulting_in_zero_without_ceiling():
     """Test case where test_size * n < 1 (would be 0 without ceiling)"""
     X = np.arange(10).reshape(5, 2)
     y = np.array([0, 1, 2, 3, 4])
@@ -341,7 +358,7 @@ def test_tts_very_small_test_size_resulting_in_zero_without_ceiling():
     assert len(X_test) == 1  # Ceiling of 0.5
     assert len(X_train) == 4
 
-def test_tts_extreme_small_test_size():
+def test_extreme_small_test_size():
     """Test with extremely small test_size"""
     X = np.arange(2000).reshape(1000, 2)
     y = np.arange(1000)
@@ -352,7 +369,7 @@ def test_tts_extreme_small_test_size():
     assert len(X_test) == 1
     assert len(X_train) == 999
 
-def test_tts_no_data_loss():
+def test_no_data_loss():
     """Test that all samples are preserved (no loss or duplication)"""
     X = np.arange(100).reshape(50, 2)
     y = np.arange(50)
@@ -364,7 +381,7 @@ def test_tts_no_data_loss():
     assert len(all_y) == len(y)
     assert set(all_y) == set(y)
 
-def test_tts_x_y_correspondence():
+def test_x_y_correspondence():
     """Test that X and y correspondence is maintained"""
     X = np.arange(100).reshape(50, 2)
     y = X[:, 0]  # y is first column of X
