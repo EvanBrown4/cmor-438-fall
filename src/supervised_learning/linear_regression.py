@@ -1,5 +1,5 @@
 import numpy as np
 
-def linear_regression(x, y) {
+# def linear_regression(x, y) {
 
-}
+# }
