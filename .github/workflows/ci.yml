@@ -2,6 +2,7 @@ name: CI
 
 on:
   pull_request:
+    branches: [ main, master ]
   push:
     branches: [ main, master ]
   workflow_dispatch:
@@ -13,7 +14,7 @@ concurrency:
 
 jobs:
   tests:
-    name: Python ${{ matrix.python-version }} • Ubuntu
+    name: Python ${{ matrix.python-version }} - Ubuntu
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -30,32 +31,23 @@ jobs:
           python-version: ${{ matrix.python-version }}
           cache: "pip"
 
-      - name: Upgrade pip
-        run: |
-          python -m pip install --upgrade pip
-
       # Install project deps if you have a constraints/requirements file;
       # fall back to minimal test deps when none are present.
       - name: Install dependencies
         run: |
-          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-          if [ -f requirements-dev.txt ]; then pip install -r requirements-dev.txt; fi
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+          # if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+          # if [ -f requirements-dev.txt ]; then pip install -r requirements-dev.txt; fi
           # Always ensure pytest + numpy are present for your tests/docstrings
           pip install pytest numpy
-
-      # Editable install so imports work with your src/ layout
-      - name: Install package (editable)
-        run: pip install -e .
 
       # Run unit tests + doctests.
       # If you added the pytest config to pyproject.toml, a plain "pytest" is enough.
       - name: Run tests
-        env:
-          # Only needed if you DIDN'T do "pip install -e ."
-          PYTHONPATH: src
         run: |
           # run the full suite (unit tests + module doctests)
-          pytest -q test
+          pytest -q
 
           # Optionally, run doctests just for supervised_learning (uncomment if you prefer explicit call)
-          pytest --doctest-modules src/rice_ml/supervised_learning -q
+          # pytest --doctest-modules src/rice_ml/supervised_learning -q
