@@ -1,7 +1,7 @@
 import pytest
 import numpy as np
 import math
-from src.rice2025.metrics import euclidean_dist, manhattan_dist
+from src.utilities.metrics import euclidean_dist, manhattan_dist
 
 def test_euclid_basic():
     x = np.array([0, 0])

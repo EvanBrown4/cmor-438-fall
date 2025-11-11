@@ -25,7 +25,7 @@ def train_test_split(
     X: ArrayLike
         The features. A mutable array-like type. Can be a list, tuple,
         np.ndarray, or pd.DataFrame.
-        Must match length/size of X.
+        Must match length/size of Y.
     y: ArrayLike or None, optional
         The labels. A mutable array-like type. Can be a list, tuple,
         np.ndarray, or pd.DataFrame.

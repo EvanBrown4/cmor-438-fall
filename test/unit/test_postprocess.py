@@ -1,7 +1,7 @@
 import pytest
 import numpy as np
 import math
-from src.rice2025.postprocess import majority_label, average_label
+from src.utilities.postprocess import majority_label, average_label
 
 def test_average_label_basic():
     pass
