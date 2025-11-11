@@ -1,1 +1,1 @@
-from K_Nearest_Neighbors import *
+from .knn import *
