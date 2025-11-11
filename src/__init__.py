@@ -1,2 +1,3 @@
 from .supervised_learning import *
 from .unsupervised_learning import *
+from .utilities import *

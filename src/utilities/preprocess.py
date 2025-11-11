@@ -1,10 +1,22 @@
 """
+Preprocessing for supervised learning models.
 
+This module implements all functions that prepare the data
+for supervised learning. It implements common functions
+that are used across the majority of algorithms.
 
+Functions
+-------
+train_test_split
+    Split array-like objects into train and test subsets.
 """
 import numpy as np
 import pandas as pd
 from typing import Optional, Union
+
+__all__ = [
+    'train_test_split'
+]
 
 ArrayLike = Union[list, tuple, np.ndarray, pd.DataFrame]
 
@@ -20,6 +32,8 @@ def train_test_split(
     tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]
 ]:
     """
+    Split up data into training and testing sets.
+    
     Inputs
     -------
     X: ArrayLike
@@ -58,6 +72,7 @@ def train_test_split(
     X = np.asarray(X)
     x_len = len(X) # Stored here to avoid continuous querying of length.
 
+    ## Type/Value checking.
     if (x_len == 0):
         raise ValueError("With n_samples=%d and test_size=%d, the resulting train set will be empty.", 0, test_size)
     
@@ -75,17 +90,24 @@ def train_test_split(
         if x_len != len(y):
             raise ValueError("X and Y must have the same length.")
     
+    # Split within stratify labels.
     if stratify is not None:
         stratify = np.asarray(stratify)
+
+        # Get unique labels and their corresponding indices.
         unique = np.unique(stratify)
-        rng = np.random.default_rng(random_state)
         label_to_idx = {label: np.where(stratify == label)[0] for label in unique}
+
+        # Split up within each label to build the train and test indices.
         train_idxs = []
         test_idxs = []
         for _, idxs in label_to_idx.items():
             n = len(idxs)
+
+            # Number of testing samples.
             test_quant = int(np.ceil(n * test_size))
             if shuffle:
+                rng = np.random.default_rng(random_state)
                 rng.shuffle(idxs)
             train_idxs.append(idxs[:-test_quant])
             test_idxs.append(idxs[-test_quant:])
@@ -100,8 +122,9 @@ def train_test_split(
             y_test = y[test_idxs]
             return (X_train, X_test, y_train, y_test)
         return (X_train, X_test)
-    else:
+    else: # Split normally (no stratify).
         idxs = np.arange(x_len)
+
         if shuffle:
             rng = np.random.default_rng(random_state)
             rng.shuffle(idxs)

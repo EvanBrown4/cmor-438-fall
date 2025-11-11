@@ -1,7 +1,7 @@
 import pytest
 import numpy as np
 import pandas as pd
-from src.utilities.preprocess import train_test_split, normalize, scale
+from src import train_test_split, normalize, scale
 
 def test_tts_standard_x_and_y():
     """Test with standard numpy arrays"""
