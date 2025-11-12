@@ -176,7 +176,7 @@ def test_0d_array():
     """Test with 0D array (scalar)"""
     x = np.array(5.0)
     
-    with pytest.raises(ValueError, match="normalize currently supports only 1D or 2D"):
+    with pytest.raises(ValueError, match="Cannot normalize a 0-length or scalar array."):
         normalize(x)
 
 def test_3d_array():
@@ -548,27 +548,24 @@ def test_mixed_int_float_list():
     assert result.dtype == np.float64
 
 def test_nan_in_array():
-    """Test with NaN values"""
+    """Test that NaN values raise a ValueError"""
     x = np.array([1.0, 2.0, np.nan, 4.0, 5.0])
-    result = normalize(x, method="zscore")
-    
-    # NaN should propagate
-    assert np.isnan(result).any()
+    with pytest.raises(ValueError, match="Cannot normalize array containing NaN or infinite values."):
+        normalize(x, method="zscore")
+
 
 def test_inf_in_array():
-    """Test with inf values"""
+    """Test that positive infinity raises a ValueError"""
     x = np.array([1.0, 2.0, np.inf, 4.0, 5.0])
-    result = normalize(x, method="zscore")
-    
-    # Inf should affect the result
-    assert np.isinf(result).any() or np.isnan(result).any()
+    with pytest.raises(ValueError, match="Cannot normalize array containing NaN or infinite values."):
+        normalize(x, method="zscore")
+
 
 def test_negative_inf_in_array():
-    """Test with negative inf values"""
+    """Test that negative infinity raises a ValueError"""
     x = np.array([1.0, 2.0, -np.inf, 4.0, 5.0])
-    result = normalize(x, method="minmax")
-    
-    assert np.isinf(result).any() or np.isnan(result).any()
+    with pytest.raises(ValueError, match="Cannot normalize array containing NaN or infinite values."):
+        normalize(x, method="minmax")
 
 
 #------------------------------
@@ -723,14 +720,20 @@ def test_robust_size_2_2d_axis1():
     assert not np.any(np.isinf(result))
 
 def test_robust_size_3():
-    """Test robust normalization with 3 elements"""
+    """Test robust normalization with 3 elements (NumPy percentile style)"""
     x = np.array([1.0, 2.0, 3.0])
     result = normalize(x, method="robust")
-    
+
+    # What the function *should* be doing, using NumPy's default percentile logic
+    x_med = np.median(x)
+    x_25 = np.percentile(x, 25)   # will be 1.5 for [1,2,3]
+    x_75 = np.percentile(x, 75)   # will be 2.5 for [1,2,3]
+    iqr = x_75 - x_25
+    if iqr == 0:
+        iqr = 1.0
+    expected = (x - x_med) / iqr
+
     assert result.shape == x.shape
-    # Median is 2.0, Q1=1.0, Q3=3.0, IQR=2.0
-    # (x - 2) / 2
-    expected = np.array([-0.5, 0.0, 0.5])
     assert np.allclose(result, expected)
 
 

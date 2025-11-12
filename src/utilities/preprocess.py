@@ -192,8 +192,8 @@ def normalize(
     x = np.asarray(x)
 
     # Ensure valid size/length of x and valid element typing.
-    if len(x) == 0 or x.size == 0:
-        raise ValueError("Cannot normalize a 0-length array or 0-size matrix.")
+    if x.ndim == 0 or x.size == 0:
+        raise ValueError("Cannot normalize a 0-length or scalar array.")
 
     if not(np.issubdtype(x.dtype, np.floating) or np.issubdtype(x.dtype, np.integer)):
         raise ValueError("Cannot normalize a non-number array. At least one element is not a number.")
@@ -210,17 +210,23 @@ def normalize(
     
     if axis is None:
         axis = 0 if x.ndim == 2 else None
+
+    if feature_range is not None and method != "minmax":
+        warn(
+            f"'feature_range' was provided but will be ignored since method='{method}'. It is only used for 'minmax' normalization.",
+            UserWarning
+        )
+    # Check for NaN or infinity values
+    if not np.all(np.isfinite(x)):
+        raise ValueError("Cannot normalize array containing NaN or infinite values.")
     
     match method:
         case "zscore":
-            return (x - x.mean(axis=axis)) / x.std(axis=axis)
+            std = x.std(axis=axis, keepdims=True)
+            std = np.where(std == 0, 1.0, std) # Divide by zero prevention.
+            return (x - x.mean(axis=axis, keepdims=True)) / std
         case "minmax":
             if feature_range is not None:
-                if method != "minmax":
-                    warn(
-                        f"'feature_range' was provided but will be ignored since method='{method}'. It is only used for 'minmax' normalization.",
-                        UserWarning
-                    )
                 if not isinstance(feature_range, tuple) or len(feature_range) != 2:
                     raise TypeError("'feature_range' must be a tuple of two numbers (min, max)")
                 if not all(isinstance(v, (int, float)) for v in feature_range):
