@@ -14,6 +14,8 @@ import numpy as np
 import pandas as pd
 from typing import Optional, Union, Literal
 from warnings import warn
+from ._validation import *
+
 
 __all__ = [
     'train_test_split',
@@ -41,11 +43,11 @@ def train_test_split(
     X: ArrayLike
         The features. A mutable array-like type. Can be a list, tuple,
         np.ndarray, or pd.DataFrame.
-        Must match length/size of Y.
+        Must match length of Y.
     y: ArrayLike or None, optional
         The labels. A mutable array-like type. Can be a list, tuple,
         np.ndarray, or pd.DataFrame.
-        Must match length/size of X.
+        Must match length of X.
     test_size: float, optional
         The proportion of the samples that will be testing samples.
         0 < test_size < 1.0
@@ -71,17 +73,12 @@ def train_test_split(
     -------
     Ceiling the number of test samples as other well-known libraries do for train_test_split functions.
     """
-    X = np.asarray(X)
-    x_len = len(X) # Stored here to avoid continuous querying of length.
-
-    ## Type/Value checking.
-    if (x_len == 0):
-        raise ValueError("With n_samples=%d and test_size=%d, the resulting train set will be empty.", 0, test_size)
+    X = _validate_2d_array(X)
     
     if not (0 < test_size < 1.0):
         raise ValueError("test_size must be a float between 0 and 1 exclusive.")
 
-    if stratify is not None and x_len != len(stratify):
+    if stratify is not None and len(X) != len(stratify):
         raise ValueError("X and stratify must have the same length.")
     
     if not (random_state is None or 0 <= random_state <= 2**32 - 1):
@@ -89,8 +86,7 @@ def train_test_split(
 
     if y is not None:
         y = np.asarray(y)
-        if x_len != len(y):
-            raise ValueError("X and Y must have the same length.")
+        _check_same_length(X, y, "X", "y")
     
     # Split within stratify labels.
     if stratify is not None:
@@ -125,12 +121,12 @@ def train_test_split(
             return (X_train, X_test, y_train, y_test)
         return (X_train, X_test)
     else: # Split normally (no stratify).
-        idxs = np.arange(x_len)
+        idxs = np.arange(len(X))
 
         if shuffle:
             rng = np.random.default_rng(random_state)
             rng.shuffle(idxs)
-        test_quant = int(np.ceil(x_len * test_size))
+        test_quant = int(np.ceil(len(X) * test_size))
         train_idxs = idxs[:-test_quant]
         test_idxs = idxs[-test_quant:]
 
@@ -147,7 +143,7 @@ def train_test_split(
 def normalize(
         x: ArrayLike,
         method: str = "zscore",
-        axis: Optional[Literal[0,1]] = None,
+        axis: Optional[int] = None,
         feature_range: Optional[tuple[Union[float, int], Union[float, int]]] = None
 ) -> np.ndarray:
     """
@@ -163,8 +159,8 @@ def normalize(
         The method x will be normalized with.
         Default: zscore.
 
-    axis: 0 | 1 | None
-        The axis to normalize on. Cannot be 1 for 1d arrays.
+    axis: int
+        The axis to normalize on. Must be -ndim <= axis < ndim.
         Default: None. Automatically set to 0 for 2D arrays (normalize per feature).
 
     feature_range: tuple(float | int, float | int), optional
@@ -174,7 +170,7 @@ def normalize(
 
     Output
     -------
-    The normalized version of x.
+    The normalized version of x as an np.ndarray.
 
     Examples
     -------
@@ -185,40 +181,14 @@ def normalize(
            [ 1.0,  1.0]])
     """
 
-    # Ensure valid axis.
-    if axis not in (0, 1, None):
-        raise ValueError("'axis' must be 0, 1, or None")
+    x = _validate_1d_or_2d(x)
+    axis = _validate_axis(axis, x.ndim)
     
-    x = np.asarray(x)
-
-    # Ensure valid size/length of x and valid element typing.
-    if x.ndim == 0 or x.size == 0:
-        raise ValueError("Cannot normalize a 0-length or scalar array.")
-
-    if not(np.issubdtype(x.dtype, np.floating) or np.issubdtype(x.dtype, np.integer)):
-        raise ValueError("Cannot normalize a non-number array. At least one element is not a number.")
-
-    # Convert x elements to floats.
-    x = x.astype(float)
-
-    ## Dimensionalit and axis checks.
-    if x.ndim > 2 or x.ndim < 1:
-        raise ValueError("normalize currently supports only 1D or 2D arrays.")
-
-    if x.ndim == 1 and axis == 1:
-        raise ValueError("Axis cannot be 1 for a 1-dimensional array.")
-    
-    if axis is None:
-        axis = 0 if x.ndim == 2 else None
-
     if feature_range is not None and method != "minmax":
         warn(
             f"'feature_range' was provided but will be ignored since method='{method}'. It is only used for 'minmax' normalization.",
             UserWarning
         )
-    # Check for NaN or infinity values
-    if not np.all(np.isfinite(x)):
-        raise ValueError("Cannot normalize array containing NaN or infinite values.")
     
     match method:
         case "zscore":
