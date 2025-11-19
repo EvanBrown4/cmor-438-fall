@@ -7,10 +7,10 @@ average_label() is implemented for non-classified models.
 """
 import numpy as np
 
-def majority_label(labels: np.array):
+def majority_label(labels: np.ndarray):
     pass
 
-def average_label(labels: np.array):
+def average_label(labels: np.ndarray):
     """
 
     """

@@ -176,21 +176,21 @@ def test_0d_array():
     """Test with 0D array (scalar)"""
     x = np.array(5.0)
     
-    with pytest.raises(ValueError, match="Cannot normalize a 0-length or scalar array."):
+    with pytest.raises(ValueError, match="Input must be a 1D or 2D numeric array.\n\n1D validation error: Expected 1D. Got 0 dimensions.\n2D validation error: Expected 2D. Got 0 dimensions."):
         normalize(x)
 
 def test_3d_array():
     """Test with 3D array"""
     x = np.array([[[1.0, 2.0], [3.0, 4.0]]])
     
-    with pytest.raises(ValueError, match="normalize currently supports only 1D or 2D"):
+    with pytest.raises(ValueError, match="Input must be a 1D or 2D numeric array.\n\n1D validation error: Expected 1D. Got 3 dimensions.\n2D validation error: Expected 2D. Got 3 dimensions."):
         normalize(x)
 
 def test_axis_1_with_1d_array():
     """Test that axis=1 with 1D array raises error"""
     x = np.array([1.0, 2.0, 3.0])
     
-    with pytest.raises(ValueError, match="Axis cannot be 1 for a 1-dimensional array"):
+    with pytest.raises(ValueError, match="'axis'=1 out of bounds for array with 1 dimensions."):
         normalize(x, axis=1)
 
 
@@ -290,14 +290,14 @@ def test_invalid_x_empty_array():
     """Test with empty array"""
     x = np.array([])
     
-    with pytest.raises(ValueError, match="Cannot normalize a 0-length"):
+    with pytest.raises(ValueError, match="Input must be a 1D or 2D numeric array.\n\n1D validation error: Array cannot be empty.\n2D validation error: Expected 2D. Got 1 dimensions."):
         normalize(x)
 
 def test_invalid_x_empty_matrix():
     """Test with empty matrix"""
     x = np.array([[]]).reshape(0, 2)
     
-    with pytest.raises(ValueError, match="Cannot normalize a 0-length"):
+    with pytest.raises(ValueError, match="Input must be a 1D or 2D numeric array.\n\n1D validation error: Expected 1D. Got 2 dimensions.\n2D validation error: Array cannot be empty."):
         normalize(x)
 
 def test_invalid_method():
@@ -311,15 +311,20 @@ def test_invalid_axis_value():
     """Test with invalid axis value"""
     x = np.array([1.0, 2.0, 3.0])
     
-    with pytest.raises(ValueError, match="'axis' must be 0, 1, or None"):
+    with pytest.raises(ValueError, match="'axis'=2 out of bounds for array with 1 dimensions."):
         normalize(x, axis=2) # type: ignore
 
 def test_invalid_axis_negative():
     """Test with negative axis value"""
     x = np.array([1.0, 2.0, 3.0])
     
-    with pytest.raises(ValueError, match="'axis' must be 0, 1, or None"):
-        normalize(x, axis=-1) # type: ignore
+    expected = np.array([-1.22474487, 0.0, 1.22474487])
+
+    result = normalize(x, axis=-1)
+
+    assert isinstance(result, np.ndarray)
+    assert result.shape == x.shape
+    assert np.allclose(result, expected)
 
 def test_invalid_feature_range_not_tuple():
     """Test with feature_range not a tuple"""
@@ -516,14 +521,14 @@ def test_non_numeric_dtype_string():
     """Test with string array"""
     x = np.array(["1", "2", "3"])
     
-    with pytest.raises(ValueError, match="Cannot normalize a non-number array"):
+    with pytest.raises(ValueError, match="Input must be a 1D or 2D numeric array.\n\n1D validation error: Array must contain numeric values.\n2D validation error: Expected 2D. Got 1 dimensions."):
         normalize(x)
 
 def test_non_numeric_dtype_object():
     """Test with object array"""
     x = np.array([{"a": 1}, {"a": 2}])
     
-    with pytest.raises(ValueError, match="Cannot normalize a non-number array"):
+    with pytest.raises(ValueError, match="Input must be a 1D or 2D numeric array.\n\n1D validation error: Array contains non-numeric values.\n2D validation error: Expected 2D. Got 1 dimensions."):
         normalize(x)
 
 def test_integer_input_returns_float():
@@ -550,21 +555,21 @@ def test_mixed_int_float_list():
 def test_nan_in_array():
     """Test that NaN values raise a ValueError"""
     x = np.array([1.0, 2.0, np.nan, 4.0, 5.0])
-    with pytest.raises(ValueError, match="Cannot normalize array containing NaN or infinite values."):
+    with pytest.raises(ValueError, match="Input must be a 1D or 2D numeric array.\n\n1D validation error: Array must not contain NaN or infinite values.\n2D validation error: Expected 2D. Got 1 dimensions."):
         normalize(x, method="zscore")
 
 
 def test_inf_in_array():
     """Test that positive infinity raises a ValueError"""
     x = np.array([1.0, 2.0, np.inf, 4.0, 5.0])
-    with pytest.raises(ValueError, match="Cannot normalize array containing NaN or infinite values."):
+    with pytest.raises(ValueError, match="Input must be a 1D or 2D numeric array.\n\n1D validation error: Array must not contain NaN or infinite values.\n2D validation error: Expected 2D. Got 1 dimensions."):
         normalize(x, method="zscore")
 
 
 def test_negative_inf_in_array():
     """Test that negative infinity raises a ValueError"""
     x = np.array([1.0, 2.0, -np.inf, 4.0, 5.0])
-    with pytest.raises(ValueError, match="Cannot normalize array containing NaN or infinite values."):
+    with pytest.raises(ValueError, match="Input must be a 1D or 2D numeric array.\n\n1D validation error: Array must not contain NaN or infinite values.\n2D validation error: Expected 2D. Got 1 dimensions."):
         normalize(x, method="minmax")
 
 

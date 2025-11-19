@@ -10,6 +10,8 @@ import numpy as np
 from typing import Union, Optional
 import pandas as pd
 
+from ._validation import *
+
 __all__ = [
     'euclidean_dist',
     'manhattan_dist'
@@ -54,48 +56,11 @@ def euclidean_dist(x: ArrayLike,
     >>> euclidean_dist(x, y)
 
     """
-    x = np.asarray(x)
-    y = np.asarray(y)
+    x = _validate_1d_or_2d(x)
+    y = _validate_1d_or_2d(y)
 
-    if x.ndim == 0 or y.ndim == 0:
-        raise ValueError("Cannot pass scalar inputs; expected 1D or 2D arrays.")
-    
-    if x.ndim > 2 or y.ndim > 2:
-        raise ValueError("Must pass arrays of 1-dimension or 2-dimensions.")
-
-    ## Type/Value checking.
-    if (x.size == 0):
-        raise ValueError("Input x cannot be empty.")
-    
-    if (y.size == 0):
-        raise ValueError("Input y cannot be empty.")
-    
-    if len(x) != len(y):
-        raise ValueError(f"Arrays must have the same shape, got {x.shape} and {y.shape}")
-    
-    if x.shape != y.shape:
-        raise ValueError(f"Arrays must have the same shape, got {x.shape} and {y.shape}")
-    
-    if x.dtype == object:
-        if not all(isinstance(v, (int, float, np.number)) for v in x.flat):
-            raise TypeError("x contains non-numeric values.")
-    elif not np.issubdtype(x.dtype, np.number):
-        raise TypeError("x must contain numeric values.")
-
-    if y.dtype == object:
-        if not all(isinstance(v, (int, float, np.number)) for v in y.flat):
-            raise TypeError("y contains non-numeric values.")
-    elif not np.issubdtype(y.dtype, np.number):
-        raise TypeError("y must contain numeric values.")
-    
-    x = x.astype(float)
-    y = y.astype(float)
-    
-    if not np.all(np.isfinite(x)):
-        raise ValueError("Inputs must not contain NaN or infinite values. Failing array: x")
-    
-    if not np.all(np.isfinite(y)):
-        raise ValueError("Inputs must not contain NaN or infinite values. Failing array: y")
+    _check_same_shape(x, y, "x", "y")
+    # _check_same_length(x, y, "x", "y")
     
     if axis is None:
         if x.ndim == 1:
@@ -147,48 +112,11 @@ def manhattan_dist(x: ArrayLike,
     >>> manhattan_dist(x, y)
 
     """
-    x = np.asarray(x)
-    y = np.asarray(y)
+    x = _validate_1d_or_2d(x)
+    y = _validate_1d_or_2d(y)
 
-    if x.ndim == 0 or y.ndim == 0:
-        raise ValueError("Cannot pass scalar inputs; expected 1D or 2D arrays.")
-    
-    if x.ndim > 2 or y.ndim > 2:
-        raise ValueError("Must pass arrays of 1-dimension or 2-dimensions.")
-
-    ## Type/Value checking.
-    if (x.size == 0):
-        raise ValueError("Input x cannot be empty.")
-    
-    if (y.size == 0):
-        raise ValueError("Input y cannot be empty.")
-    
-    if len(x) != len(y):
-        raise ValueError(f"Arrays must have the same shape, got {x.shape} and {y.shape}")
-    
-    if x.shape != y.shape:
-        raise ValueError(f"Arrays must have the same shape, got {x.shape} and {y.shape}")
-    
-    if x.dtype == object:
-        if not all(isinstance(v, (int, float, np.number)) for v in x.flat):
-            raise TypeError("x contains non-numeric values.")
-    elif not np.issubdtype(x.dtype, np.number):
-        raise TypeError("x must contain numeric values.")
-
-    if y.dtype == object:
-        if not all(isinstance(v, (int, float, np.number)) for v in y.flat):
-            raise TypeError("y contains non-numeric values.")
-    elif not np.issubdtype(y.dtype, np.number):
-        raise TypeError("y must contain numeric values.")
-    
-    x = x.astype(float)
-    y = y.astype(float)
-    
-    if not np.all(np.isfinite(x)):
-        raise ValueError("Inputs must not contain NaN or infinite values. Failing array: x")
-    
-    if not np.all(np.isfinite(y)):
-        raise ValueError("Inputs must not contain NaN or infinite values. Failing array: y")
+    _check_same_shape(x, y, "x", "y")
+    # _check_same_length(x, y, "x", "y")
     
     if axis is None:
         if x.ndim == 1:

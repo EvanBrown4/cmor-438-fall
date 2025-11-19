@@ -90,7 +90,7 @@ def test_euclidean_dist_scalar_fails():
     x = np.array(5)
     y = np.array([1, 2])
     
-    with pytest.raises(ValueError, match="Cannot pass scalar inputs"):
+    with pytest.raises(ValueError, match="Input must be a 1D or 2D numeric array.\n\n1D validation error: Expected 1D. Got 0 dimensions.\n2D validation error: Expected 2D. Got 0 dimensions."):
         euclidean_dist(y, x)
 
 def test_euclidean_dist_both_scalars_fail():
@@ -98,7 +98,7 @@ def test_euclidean_dist_both_scalars_fail():
     x = np.array(5)
     y = np.array(3)
     
-    with pytest.raises(ValueError, match="Cannot pass scalar inputs"):
+    with pytest.raises(ValueError, match="Input must be a 1D or 2D numeric array.\n\n1D validation error: Expected 1D. Got 0 dimensions.\n2D validation error: Expected 2D. Got 0 dimensions."):
         euclidean_dist(x, y)
 
 #------------------------------
@@ -128,7 +128,7 @@ def test_euclidean_dist_3d_fails():
     x = np.array([[[1, 2], [3, 4]]])
     y = np.array([[[5, 6], [7, 8]]])
     
-    with pytest.raises(ValueError, match="Must pass arrays of 1-dimension or 2-dimensions"):
+    with pytest.raises(ValueError, match="Input must be a 1D or 2D numeric array.\n\n1D validation error: Expected 1D. Got 3 dimensions.\n2D validation error: Expected 2D. Got 3 dimensions."):
         euclidean_dist(x, y)
 
 def test_euclidean_dist_4d_fails():
@@ -136,7 +136,7 @@ def test_euclidean_dist_4d_fails():
     x = np.ones((2, 2, 2, 2))
     y = np.ones((2, 2, 2, 2))
     
-    with pytest.raises(ValueError, match="Must pass arrays of 1-dimension or 2-dimensions"):
+    with pytest.raises(ValueError, match="Input must be a 1D or 2D numeric array.\n\n1D validation error: Expected 1D. Got 4 dimensions.\n2D validation error: Expected 2D. Got 4 dimensions."):
         euclidean_dist(x, y)
 
 #------------------------------
@@ -148,10 +148,10 @@ def test_euclidean_dist_empty_fails():
     x = np.array([])
     y = np.array([1, 2, 3])
     
-    with pytest.raises(ValueError, match="Input x cannot be empty"):
+    with pytest.raises(ValueError, match="Input must be a 1D or 2D numeric array.\n\n1D validation error: Array cannot be empty.\n2D validation error: Expected 2D. Got 1 dimensions."):
         euclidean_dist(x, y)
 
-    with pytest.raises(ValueError, match="Input y cannot be empty"):
+    with pytest.raises(ValueError, match="Input must be a 1D or 2D numeric array.\n\n1D validation error: Array cannot be empty.\n2D validation error: Expected 2D. Got 1 dimensions."):
         euclidean_dist(y, x)
 
 def test_euclidean_dist_both_empty_fail():
@@ -159,7 +159,7 @@ def test_euclidean_dist_both_empty_fail():
     x = np.array([])
     y = np.array([])
     
-    with pytest.raises(ValueError, match="Input x cannot be empty"):
+    with pytest.raises(ValueError, match="Input must be a 1D or 2D numeric array.\n\n1D validation error: Array cannot be empty.\n2D validation error: Expected 2D. Got 1 dimensions."):
         euclidean_dist(x, y)
 
 def test_euclidean_dist_empty_2d_fails():
@@ -167,10 +167,10 @@ def test_euclidean_dist_empty_2d_fails():
     x = np.array([[]]).reshape(0, 2)
     y = np.array([[1, 2]])
     
-    with pytest.raises(ValueError, match="Input x cannot be empty"):
+    with pytest.raises(ValueError, match="Input must be a 1D or 2D numeric array.\n\n1D validation error: Expected 1D. Got 2 dimensions.\n2D validation error: Array cannot be empty."):
         euclidean_dist(x, y)
 
-    with pytest.raises(ValueError, match="Input y cannot be empty"):
+    with pytest.raises(ValueError, match="Input must be a 1D or 2D numeric array.\n\n1D validation error: Expected 1D. Got 2 dimensions.\n2D validation error: Array cannot be empty."):
         euclidean_dist(y, x)
 
 #------------------------------
@@ -182,7 +182,7 @@ def test_euclidean_dist_different_lengths_1d_fails():
     x = np.array([1, 2, 3])
     y = np.array([1, 2])
     
-    with pytest.raises(ValueError, match=re.escape("Arrays must have the same shape, got (3,) and (2,)")):
+    with pytest.raises(ValueError, match=re.escape("x and y must have the same shape, got (3,) and (2,).")):
         euclidean_dist(x, y)
 
 def test_euclidean_dist_different_shapes_2d_fails():
@@ -190,7 +190,7 @@ def test_euclidean_dist_different_shapes_2d_fails():
     x = np.array([[1, 2], [3, 4]])
     y = np.array([[1, 2, 3], [4, 5, 6]])
     
-    with pytest.raises(ValueError, match="Arrays must have the same shape"):
+    with pytest.raises(ValueError, match=re.escape("x and y must have the same shape, got (2, 2) and (2, 3).")):
         euclidean_dist(x, y)
 
 def test_euclidean_dist_same_size_different_shape_fails():
@@ -198,7 +198,7 @@ def test_euclidean_dist_same_size_different_shape_fails():
     x = np.array([[1, 2, 3, 4]])
     y = np.array([[1, 2], [3, 4]])
     
-    with pytest.raises(ValueError, match="Arrays must have the same shape"):
+    with pytest.raises(ValueError, match=re.escape("x and y must have the same shape, got (1, 4) and (2, 2).")):
         euclidean_dist(x, y)
 
 def test_euclidean_dist_matching_shapes_passes():
@@ -218,10 +218,10 @@ def test_euclidean_dist_string_fails():
     x = np.array(['a', 'b', 'c'])
     y = np.array([1, 2, 3])
     
-    with pytest.raises(TypeError, match="x must contain numeric values"):
+    with pytest.raises(ValueError, match="Input must be a 1D or 2D numeric array.\n\n1D validation error: Array must contain numeric values.\n2D validation error: Expected 2D. Got 1 dimensions."):
         euclidean_dist(x, y)
     
-    with pytest.raises(TypeError, match="y must contain numeric values"):
+    with pytest.raises(ValueError, match="Input must be a 1D or 2D numeric array.\n\n1D validation error: Array must contain numeric values.\n2D validation error: Expected 2D. Got 1 dimensions."):
         euclidean_dist(y, x)
 
 def test_euclidean_dist_object_array_mixed_fails():
@@ -229,10 +229,10 @@ def test_euclidean_dist_object_array_mixed_fails():
     x = np.array([1, 2, 'c'], dtype=object)
     y = np.array([1, 2, 3])
     
-    with pytest.raises(TypeError, match="x contains non-numeric values"):
+    with pytest.raises(ValueError, match="Input must be a 1D or 2D numeric array.\n\n1D validation error: Array contains non-numeric values.\n2D validation error: Expected 2D. Got 1 dimensions."):
         euclidean_dist(x, y)
 
-    with pytest.raises(TypeError, match="y contains non-numeric values"):
+    with pytest.raises(ValueError, match="Input must be a 1D or 2D numeric array.\n\n1D validation error: Array contains non-numeric values.\n2D validation error: Expected 2D. Got 1 dimensions."):
         euclidean_dist(y, x)
 
 def test_euclidean_dist_numeric_object_array_passes():
@@ -253,10 +253,10 @@ def test_euclidean_dist_nan_fails():
     x = np.array([1, np.nan, 3])
     y = np.array([1, 2, 3])
     
-    with pytest.raises(ValueError, match="Inputs must not contain NaN or infinite values. Failing array: x"):
+    with pytest.raises(ValueError, match="Input must be a 1D or 2D numeric array.\n\n1D validation error: Array must not contain NaN or infinite values.\n2D validation error: Expected 2D. Got 1 dimensions."):
         euclidean_dist(x, y)
     
-    with pytest.raises(ValueError, match="Inputs must not contain NaN or infinite values. Failing array: y"):
+    with pytest.raises(ValueError, match="Input must be a 1D or 2D numeric array.\n\n1D validation error: Array must not contain NaN or infinite values.\n2D validation error: Expected 2D. Got 1 dimensions."):
         euclidean_dist(y, x)
 
 def test_euclidean_dist_inf_fails():
@@ -264,10 +264,10 @@ def test_euclidean_dist_inf_fails():
     x = np.array([1, np.inf, 3])
     y = np.array([1, 2, 3])
     
-    with pytest.raises(ValueError, match="Inputs must not contain NaN or infinite values. Failing array: x"):
+    with pytest.raises(ValueError, match="Input must be a 1D or 2D numeric array.\n\n1D validation error: Array must not contain NaN or infinite values.\n2D validation error: Expected 2D. Got 1 dimensions."):
         euclidean_dist(x, y)
     
-    with pytest.raises(ValueError, match="Inputs must not contain NaN or infinite values. Failing array: y"):
+    with pytest.raises(ValueError, match="Input must be a 1D or 2D numeric array.\n\n1D validation error: Array must not contain NaN or infinite values.\n2D validation error: Expected 2D. Got 1 dimensions."):
         euclidean_dist(y, x)
 
 def test_euclidean_dist_neg_inf_in_x_fails():
@@ -275,7 +275,7 @@ def test_euclidean_dist_neg_inf_in_x_fails():
     x = np.array([1, -np.inf, 3])
     y = np.array([1, 2, 3])
     
-    with pytest.raises(ValueError, match="Inputs must not contain NaN or infinite values. Failing array: x"):
+    with pytest.raises(ValueError, match="Input must be a 1D or 2D numeric array.\n\n1D validation error: Array must not contain NaN or infinite values.\n2D validation error: Expected 2D. Got 1 dimensions."):
         euclidean_dist(x, y)
 
 def test_euclidean_dist_finite_values_pass():
@@ -553,7 +553,7 @@ def test_manhattan_dist_scalar_fails():
     x = np.array(5)
     y = np.array([1, 2])
     
-    with pytest.raises(ValueError, match="Cannot pass scalar inputs"):
+    with pytest.raises(ValueError, match="Input must be a 1D or 2D numeric array.\n\n1D validation error: Expected 1D. Got 0 dimensions.\n2D validation error: Expected 2D. Got 0 dimensions."):
         manhattan_dist(y, x)
 
 def test_manhattan_dist_both_scalars_fail():
@@ -561,7 +561,7 @@ def test_manhattan_dist_both_scalars_fail():
     x = np.array(5)
     y = np.array(3)
     
-    with pytest.raises(ValueError, match="Cannot pass scalar inputs"):
+    with pytest.raises(ValueError, match="Input must be a 1D or 2D numeric array.\n\n1D validation error: Expected 1D. Got 0 dimensions.\n2D validation error: Expected 2D. Got 0 dimensions."):
         manhattan_dist(x, y)
 
 #------------------------------
@@ -591,7 +591,7 @@ def test_manhattan_dist_3d_fails():
     x = np.array([[[1, 2], [3, 4]]])
     y = np.array([[[5, 6], [7, 8]]])
     
-    with pytest.raises(ValueError, match="Must pass arrays of 1-dimension or 2-dimensions"):
+    with pytest.raises(ValueError, match="Input must be a 1D or 2D numeric array.\n\n1D validation error: Expected 1D. Got 3 dimensions.\n2D validation error: Expected 2D. Got 3 dimensions."):
         manhattan_dist(x, y)
 
 def test_manhattan_dist_4d_fails():
@@ -599,7 +599,7 @@ def test_manhattan_dist_4d_fails():
     x = np.ones((2, 2, 2, 2))
     y = np.ones((2, 2, 2, 2))
     
-    with pytest.raises(ValueError, match="Must pass arrays of 1-dimension or 2-dimensions"):
+    with pytest.raises(ValueError, match="Input must be a 1D or 2D numeric array.\n\n1D validation error: Expected 1D. Got 4 dimensions.\n2D validation error: Expected 2D. Got 4 dimensions."):
         manhattan_dist(x, y)
 
 #------------------------------
@@ -611,10 +611,10 @@ def test_manhattan_dist_empty_fails():
     x = np.array([])
     y = np.array([1, 2, 3])
     
-    with pytest.raises(ValueError, match="Input x cannot be empty"):
+    with pytest.raises(ValueError, match="Input must be a 1D or 2D numeric array.\n\n1D validation error: Array cannot be empty.\n2D validation error: Expected 2D. Got 1 dimensions."):
         manhattan_dist(x, y)
 
-    with pytest.raises(ValueError, match="Input y cannot be empty"):
+    with pytest.raises(ValueError, match="Input must be a 1D or 2D numeric array.\n\n1D validation error: Array cannot be empty.\n2D validation error: Expected 2D. Got 1 dimensions."):
         manhattan_dist(y, x)
 
 def test_manhattan_dist_both_empty_fail():
@@ -622,7 +622,7 @@ def test_manhattan_dist_both_empty_fail():
     x = np.array([])
     y = np.array([])
     
-    with pytest.raises(ValueError, match="Input x cannot be empty"):
+    with pytest.raises(ValueError, match="Input must be a 1D or 2D numeric array.\n\n1D validation error: Array cannot be empty.\n2D validation error: Expected 2D. Got 1 dimensions."):
         manhattan_dist(x, y)
 
 def test_manhattan_dist_empty_2d_fails():
@@ -630,10 +630,10 @@ def test_manhattan_dist_empty_2d_fails():
     x = np.array([[]]).reshape(0, 2)
     y = np.array([[1, 2]])
     
-    with pytest.raises(ValueError, match="Input x cannot be empty"):
+    with pytest.raises(ValueError, match="Input must be a 1D or 2D numeric array.\n\n1D validation error: Expected 1D. Got 2 dimensions.\n2D validation error: Array cannot be empty."):
         manhattan_dist(x, y)
 
-    with pytest.raises(ValueError, match="Input y cannot be empty"):
+    with pytest.raises(ValueError, match="Input must be a 1D or 2D numeric array.\n\n1D validation error: Expected 1D. Got 2 dimensions.\n2D validation error: Array cannot be empty."):
         manhattan_dist(y, x)
 
 #------------------------------
@@ -645,7 +645,7 @@ def test_manhattan_dist_different_lengths_1d_fails():
     x = np.array([1, 2, 3])
     y = np.array([1, 2])
     
-    with pytest.raises(ValueError, match=re.escape("Arrays must have the same shape, got (3,) and (2,)")):
+    with pytest.raises(ValueError, match=re.escape("x and y must have the same shape, got (3,) and (2,).")):
         manhattan_dist(x, y)
 
 def test_manhattan_dist_different_shapes_2d_fails():
@@ -653,7 +653,7 @@ def test_manhattan_dist_different_shapes_2d_fails():
     x = np.array([[1, 2], [3, 4]])
     y = np.array([[1, 2, 3], [4, 5, 6]])
     
-    with pytest.raises(ValueError, match="Arrays must have the same shape"):
+    with pytest.raises(ValueError, match=re.escape("x and y must have the same shape, got (2, 2) and (2, 3).")):
         manhattan_dist(x, y)
 
 def test_manhattan_dist_same_size_different_shape_fails():
@@ -661,7 +661,7 @@ def test_manhattan_dist_same_size_different_shape_fails():
     x = np.array([[1, 2, 3, 4]])
     y = np.array([[1, 2], [3, 4]])
     
-    with pytest.raises(ValueError, match="Arrays must have the same shape"):
+    with pytest.raises(ValueError, match=re.escape("x and y must have the same shape, got (1, 4) and (2, 2).")):
         manhattan_dist(x, y)
 
 def test_manhattan_dist_matching_shapes_passes():
@@ -681,10 +681,10 @@ def test_manhattan_dist_string_fails():
     x = np.array(['a', 'b', 'c'])
     y = np.array([1, 2, 3])
     
-    with pytest.raises(TypeError, match="x must contain numeric values"):
+    with pytest.raises(ValueError, match="Input must be a 1D or 2D numeric array.\n\n1D validation error: Array must contain numeric values.\n2D validation error: Expected 2D. Got 1 dimensions."):
         manhattan_dist(x, y)
     
-    with pytest.raises(TypeError, match="y must contain numeric values"):
+    with pytest.raises(ValueError, match="Input must be a 1D or 2D numeric array.\n\n1D validation error: Array must contain numeric values.\n2D validation error: Expected 2D. Got 1 dimensions."):
         manhattan_dist(y, x)
 
 def test_manhattan_dist_object_array_mixed_fails():
@@ -692,10 +692,10 @@ def test_manhattan_dist_object_array_mixed_fails():
     x = np.array([1, 2, 'c'], dtype=object)
     y = np.array([1, 2, 3])
     
-    with pytest.raises(TypeError, match="x contains non-numeric values"):
+    with pytest.raises(ValueError, match="Input must be a 1D or 2D numeric array.\n\n1D validation error: Array contains non-numeric values.\n2D validation error: Expected 2D. Got 1 dimensions."):
         manhattan_dist(x, y)
 
-    with pytest.raises(TypeError, match="y contains non-numeric values"):
+    with pytest.raises(ValueError, match="Input must be a 1D or 2D numeric array.\n\n1D validation error: Array contains non-numeric values.\n2D validation error: Expected 2D. Got 1 dimensions."):
         manhattan_dist(y, x)
 
 def test_manhattan_dist_numeric_object_array_passes():
@@ -716,10 +716,10 @@ def test_manhattan_dist_nan_fails():
     x = np.array([1, np.nan, 3])
     y = np.array([1, 2, 3])
     
-    with pytest.raises(ValueError, match="Inputs must not contain NaN or infinite values. Failing array: x"):
+    with pytest.raises(ValueError, match="Input must be a 1D or 2D numeric array.\n\n1D validation error: Array must not contain NaN or infinite values.\n2D validation error: Expected 2D. Got 1 dimensions."):
         manhattan_dist(x, y)
     
-    with pytest.raises(ValueError, match="Inputs must not contain NaN or infinite values. Failing array: y"):
+    with pytest.raises(ValueError, match="Input must be a 1D or 2D numeric array.\n\n1D validation error: Array must not contain NaN or infinite values.\n2D validation error: Expected 2D. Got 1 dimensions."):
         manhattan_dist(y, x)
 
 def test_manhattan_dist_inf_fails():
@@ -727,10 +727,10 @@ def test_manhattan_dist_inf_fails():
     x = np.array([1, np.inf, 3])
     y = np.array([1, 2, 3])
     
-    with pytest.raises(ValueError, match="Inputs must not contain NaN or infinite values. Failing array: x"):
+    with pytest.raises(ValueError, match="Input must be a 1D or 2D numeric array.\n\n1D validation error: Array must not contain NaN or infinite values.\n2D validation error: Expected 2D. Got 1 dimensions."):
         manhattan_dist(x, y)
     
-    with pytest.raises(ValueError, match="Inputs must not contain NaN or infinite values. Failing array: y"):
+    with pytest.raises(ValueError, match="Input must be a 1D or 2D numeric array.\n\n1D validation error: Array must not contain NaN or infinite values.\n2D validation error: Expected 2D. Got 1 dimensions."):
         manhattan_dist(y, x)
 
 def test_manhattan_dist_neg_inf_in_x_fails():
@@ -738,7 +738,7 @@ def test_manhattan_dist_neg_inf_in_x_fails():
     x = np.array([1, -np.inf, 3])
     y = np.array([1, 2, 3])
     
-    with pytest.raises(ValueError, match="Inputs must not contain NaN or infinite values. Failing array: x"):
+    with pytest.raises(ValueError, match="Input must be a 1D or 2D numeric array.\n\n1D validation error: Array must not contain NaN or infinite values.\n2D validation error: Expected 2D. Got 1 dimensions."):
         manhattan_dist(x, y)
 
 def test_manhattan_dist_finite_values_pass():
