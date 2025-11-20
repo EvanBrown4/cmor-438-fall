@@ -1,6 +1,6 @@
 import numpy as np
 import pandas as pd
-from typing import Optional, Union, Literal
+from typing import Optional, Union
 
 __all__ = [
     "_validate_1d_array",
@@ -9,11 +9,18 @@ __all__ = [
     "_check_same_shape",
     "_validate_axis",
     "_validate_1d_or_2d",
+    "_check_numeric_dtypes",
+    "_check_finite_if_numeric",
+    "_check_consistent_types",
 ]
 
 ArrayLike = Union[list, tuple, np.ndarray, pd.Series, pd.DataFrame]
 
 def _check_same_length(a: ArrayLike, b: ArrayLike, a_name: str, b_name: str) -> None:
+    """
+    Checks if a and b have the same length.
+    Raises a ValueError if not.
+    """
     a_len = len(a)
     b_len = len(b)
     if a_len != b_len:
@@ -22,11 +29,51 @@ def _check_same_length(a: ArrayLike, b: ArrayLike, a_name: str, b_name: str) -> 
     
 
 def _check_same_shape(a: np.ndarray, b: np.ndarray, a_name: str, b_name: str) -> None:
+    """
+    Checks if a and b have the same shape.
+    Raises a ValueError if not.
+    """
     if a.shape != b.shape:
         raise ValueError(f"{a_name} and {b_name} must have the same shape, "
                          f"got {a.shape} and {b.shape}.")
+    
+def _check_numeric_dtypes(x: np.ndarray):
+    """
+    Checks if x contains only numeric dtypes.
+    Raises a TypeError if not.
+    """
+    if x.dtype == object:
+        if not all(isinstance(v, (int, float, np.number)) for v in x.flat):
+            raise TypeError("Array contains non-numeric values.")
+    elif not np.issubdtype(x.dtype, np.number):
+        raise TypeError("Array must contain numeric values.")
+    
+    _check_finite_if_numeric(x)
 
-def _validate_1d_or_2d(arr: ArrayLike) -> np.ndarray:
+def _check_finite_if_numeric(x: np.ndarray):
+
+    if np.issubdtype(x.dtype, np.number):
+        if not np.all(np.isfinite(x)):
+            raise ValueError("Array must not contain NaN or infinite values.")
+
+    if x.dtype == object:
+        try:
+            # Convert each element to float (vectorized with list comprehension)
+            numeric_x = np.array([float(el) for el in x], dtype=float)
+        except (TypeError, ValueError):
+            # Non-numeric objects → silently accept
+            return
+
+        if not np.all(np.isfinite(numeric_x)):
+            raise ValueError("Array must not contain NaN or infinite values.")
+
+def _check_consistent_types(x: np.ndarray):
+    if x.dtype == object:
+        types = {type(el) for el in x}
+        if len(types) > 1:
+            raise TypeError("All labels must have the same Python type.")
+
+def _validate_1d_or_2d(arr: ArrayLike) -> np.typing.NDArray[np.float64]:
     """
     Attempt to validate arr as 1D OR 2D.
     Returns the cleaned numpy array.
@@ -52,7 +99,7 @@ def _validate_1d_or_2d(arr: ArrayLike) -> np.ndarray:
         f"2D validation error: {err_2d}"
     )
 
-def _validate_1d_array(y: ArrayLike) -> np.ndarray:
+def _validate_1d_array(y: ArrayLike) -> np.typing.NDArray[np.float64]:
     """
     Convert input into a clean, 1D, numeric numpy array of floats.
 
@@ -77,19 +124,14 @@ def _validate_1d_array(y: ArrayLike) -> np.ndarray:
     if (y.size == 0):
         raise ValueError("Array cannot be empty.")
 
-    if y.dtype == object:
-        if not all(isinstance(v, (int, float, np.number)) for v in y.flat):
-            raise TypeError("Array contains non-numeric values.")
-    elif not np.issubdtype(y.dtype, np.number):
-        raise TypeError("Array must contain numeric values.")
+    _check_numeric_dtypes(y)
     y = y.astype(float)
     
-    if not np.all(np.isfinite(y)):
-        raise ValueError("Array must not contain NaN or infinite values.")
+    _check_finite_if_numeric(y)
     
     return y
 
-def _validate_2d_array(x: ArrayLike) -> np.ndarray:
+def _validate_2d_array(x: ArrayLike) -> np.typing.NDArray[np.float64]:
     """
     Convert input into a clean, 2D, numeric numpy array of floats.
 
@@ -114,19 +156,21 @@ def _validate_2d_array(x: ArrayLike) -> np.ndarray:
     if (x.size == 0):
         raise ValueError("Array cannot be empty.")
 
-    if x.dtype == object:
-        if not all(isinstance(v, (int, float, np.number)) for v in x.flat):
-            raise TypeError("Array contains non-numeric values.")
-    elif not np.issubdtype(x.dtype, np.number):
-        raise TypeError("Array must contain numeric values.")
+    _check_numeric_dtypes(x)
     x = x.astype(float)
     
-    if not np.all(np.isfinite(x)):
-        raise ValueError("Array must not contain NaN or infinite values.")
+    _check_finite_if_numeric(x)
     
     return x
 
 def _validate_axis(axis: Optional[int], ndim: int) -> Optional[int]:
+    """
+    Ensures a valid axis.
+    Axis must be less than ndim and greater than or equal to -ndim.
+    Axis must be an int or None.
+    
+    If axis is None and ndim > 1, returns 0. Otherwise returns axis.
+    """
     if axis is None:
         if ndim > 1:
             return 0
