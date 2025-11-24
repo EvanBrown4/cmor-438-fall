@@ -2,7 +2,7 @@ import pytest
 import numpy as np
 import math
 import re
-from src.utilities.metrics import euclidean_dist, manhattan_dist
+from src.rice_ml.utilities.metrics import euclidean_dist, manhattan_dist
 
 
 #------------------------------
