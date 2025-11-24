@@ -12,6 +12,11 @@ from typing import Literal, Optional, Union
 
 from ._validation import *
 
+__all__ = [
+    "majority_label",
+    "average_label",
+]
+
 ArrayLike = Union[list, tuple, np.ndarray, pd.Series, pd.DataFrame]
 
 def majority_label(labels: ArrayLike):
