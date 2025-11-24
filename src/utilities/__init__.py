@@ -8,4 +8,6 @@ __all__ = [
     "normalize",
     "euclidean_dist",
     "manhattan_dist",
+    "majority_label",
+    "average_label",
 ]
