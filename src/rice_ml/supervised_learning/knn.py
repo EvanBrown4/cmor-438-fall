@@ -404,6 +404,28 @@ class KNNClassifier(_KNNBase):
             raise RuntimeError("Model is not fitted.")
 
         return self.classes_[best]
+    
+    def score(self, X_test: ArrayLike, y_true: ArrayLike) -> float:
+        """
+        Compute accuracy score.
+
+        Parameters
+        ----------
+        X_test : array-like of shape (n_query, n_features)
+        y_true : array-like of shape (n_query,)
+
+        Returns
+        -------
+        float
+            Classification accuracy.
+        """
+        _, _ = self._check_is_fitted()
+        y_true = _validate_1d_array_no_type(y_true)
+        y_pred = self.predict(X_test)
+
+        _check_same_length(y_true, y_pred, "y_true", "y_pred")
+
+        return float(np.mean(y_pred == y_true))
 
 class KNNRegressor(_KNNBase):
     """
@@ -488,3 +510,32 @@ class KNNRegressor(_KNNBase):
             preds[zero_mask] = np.mean(n_vals[zero_mask], axis=1)
         
         return preds
+    
+    def score(self, X_test: ArrayLike, y_true: ArrayLike) -> float:
+        """
+        Compute R^2 (coefficient of determination).
+
+        Parameters
+        ----------
+        X_test : array-like
+        y_true : array-like
+
+        Returns
+        -------
+        float
+            R^2 score.
+        """
+        _, _ = self._check_is_fitted()
+        
+        y_true = _validate_1d_array(y_true)
+        y_pred = self.predict(X_test)
+
+        _check_same_length(y_true, y_pred, "y_true", "y_pred")
+
+        ss_res = np.sum((y_true - y_pred) ** 2)
+        ss_tot = np.sum((y_true - np.mean(y_true)) ** 2)
+
+        if ss_tot == 0:
+            return 0.0
+
+        return float(1 - ss_res / ss_tot)
