@@ -3,7 +3,7 @@ import pandas as pd
 import pytest
 from typing import Union
 
-from src.utilities.postprocess import *
+from src.rice_ml.utilities.postprocess import *
 
 #------------------------------
 ## majority_label Tests

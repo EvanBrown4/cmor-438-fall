@@ -2,7 +2,7 @@ import pytest
 import numpy as np
 import pandas as pd
 import warnings
-from src import normalize
+from src.rice_ml import normalize
 
 ## normalize() testing
 
