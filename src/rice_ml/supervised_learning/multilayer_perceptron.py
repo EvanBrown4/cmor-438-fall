@@ -13,11 +13,6 @@ class MLPClassifier:
     """
     Multi-Layer Perceptron (Neural Network) for binary classification.
 
-    This implementation uses ReLU activation for hidden layers and sigmoid
-    activation for the output layer. Training is performed using backpropagation
-    with binary cross-entropy loss. The network can have an arbitrary number
-    of hidden layers with configurable sizes.
-
     Parameters
     ----------
     hidden_layer_sizes : tuple of int, default=(32,)

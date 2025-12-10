@@ -8,11 +8,6 @@ class PerceptronClassifier:
     """
     Perceptron binary classifier.
 
-    The perceptron is a linear classifier that learns a separating hyperplane
-    for binary classification tasks. It updates weights based on misclassified
-    samples using the perceptron learning rule. This implementation uses online
-    learning (one sample at a time).
-
     Parameters
     ----------
     lr : float, default=0.01
@@ -53,12 +48,6 @@ class PerceptronClassifier:
     >>> clf.fit(X, y)
     >>> clf.predict([[1.5]])
     array([1])
-
-    Notes
-    -----
-    The perceptron is guaranteed to converge only for linearly separable data.
-    For non-separable data, it will continue updating weights until `max_iter`
-    is reached or the tolerance criterion is met.
     """
 
     def __init__(

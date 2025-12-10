@@ -13,13 +13,7 @@ from src.rice_ml.supervised_learning.decision_trees import (
 class RandomForestClassifier:
     """
     Random Forest Classifier using CART-style decision trees.
-
-    A random forest is a meta estimator that fits a number of decision tree
-    classifiers on various sub-samples of the dataset and uses averaging to
-    improve the predictive accuracy and control over-fitting. The sub-sample
-    size is controlled with the bootstrap parameter. Each tree is trained on
-    a bootstrap sample of the data and a random subset of features.
-
+    
     Parameters
     ----------
     n_estimators : int, default=100

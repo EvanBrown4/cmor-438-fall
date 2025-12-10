@@ -41,10 +41,6 @@ class DecisionTreeRegressor:
     """
     CART-style decision tree regressor using variance reduction.
 
-    A decision tree regressor that recursively partitions the feature space
-    to minimize the variance of target values within each partition. Uses
-    the mean squared error (MSE) reduction criterion for splitting decisions.
-
     Parameters
     ----------
     max_depth : int or None, default=None
@@ -80,12 +76,6 @@ class DecisionTreeRegressor:
     >>> reg.fit(X, y)
     >>> reg.predict([[1.5]])
     array([1.5])
-
-    Notes
-    -----
-    Decision trees can overfit easily on training data, especially when
-    max_depth is not limited. Consider using ensemble methods like Random
-    Forest or Gradient Boosting for better generalization.
     """
 
     def __init__(
