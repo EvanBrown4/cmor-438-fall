@@ -69,16 +69,25 @@ class PrincipalComponentAnalysis:
 
         U, S, Vt = np.linalg.svd(X_centered, full_matrices=False)
 
-        explained_variance = (S ** 2) / (n_samples - 1)
-        total_variance = explained_variance.sum()
+        if n_samples <= 1:
+            explained_variance = np.zeros_like(S)
+            total_variance = 0.0
+        else:
+            explained_variance = (S ** 2) / (n_samples - 1)
+            total_variance = explained_variance.sum()
+
 
         k = self.n_components or Vt.shape[0]
 
         self.components_ = Vt[:k]
         self.explained_variance_ = explained_variance[:k]
-        self.explained_variance_ratio_ = (
-            self.explained_variance_ / total_variance
-        )
+
+        if total_variance == 0.0:
+            self.explained_variance_ratio_ = np.zeros_like(self.explained_variance_)
+        else:
+            self.explained_variance_ratio_ = (
+                self.explained_variance_ / total_variance
+            )
 
         if self.whiten:
             self._scaling_ = np.sqrt(self.explained_variance_)
