@@ -253,7 +253,7 @@ def test_kmeans_empty_input():
     X = np.array([]).reshape(0, 2)
     kmeans = KMeans(n_clusters=2)
     
-    with pytest.raises(ValueError, match="at least one sample"):
+    with pytest.raises(ValueError, match="Array cannot be empty"):
         kmeans.fit(X)
 
 

@@ -96,7 +96,7 @@ class KMeans:
             shift = np.linalg.norm(self.cluster_centers_ - new_centers)
             self.cluster_centers_ = new_centers
 
-            if shift <= self.tol:
+            if self.tol > 0 and shift <= self.tol:
                 break
 
         self.labels_ = self._assign_labels(X, self.cluster_centers_)
@@ -162,28 +162,30 @@ class KMeans:
         X = _validate_2d_array(X)
         return self._pairwise_distances(X, self.cluster_centers_)
 
-    def _initialize_centers(
-        self, 
-        X: np.ndarray, 
-        rng: np.random.Generator
-    ) -> np.ndarray:
-        """Initialize cluster centers."""
+    def _initialize_centers(self, X: np.ndarray, rng: np.random.Generator) -> np.ndarray:
         if self.init == "random":
             indices = rng.choice(X.shape[0], size=self.n_clusters, replace=False)
             return X[indices].copy()
 
         centers = []
-        indices = rng.choice(X.shape[0])
-        centers.append(X[indices])
+        index = rng.integers(0, X.shape[0])
+        centers.append(X[index])
 
         for _ in range(1, self.n_clusters):
             D = self._pairwise_distances(X, np.array(centers))
             dist_sq = np.min(D, axis=1) ** 2
-            probs = dist_sq / np.sum(dist_sq)
-            index = rng.choice(X.shape[0], p=probs)
+            total = np.sum(dist_sq)
+
+            if total == 0:
+                index = rng.integers(0, X.shape[0])
+            else:
+                probs = dist_sq / total
+                index = rng.choice(X.shape[0], p=probs)
+
             centers.append(X[index])
 
         return np.array(centers)
+
 
     def _assign_labels(self, X: np.ndarray, centers: np.ndarray) -> np.ndarray:
         """Assign samples to nearest center."""
