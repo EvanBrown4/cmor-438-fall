@@ -1,28 +1,15 @@
 import numpy as np
-from typing import Optional, Literal
+import pandas as pd
+from typing import Optional, Literal, Union
 
 from src.rice_ml.utilities import *
 from src.rice_ml.utilities._validation import *
 
+ArrayLike = Union[list, tuple, np.ndarray, pd.Series, pd.DataFrame]
+
 
 class _TreeNode:
-    """
-    Internal node structure for decision tree.
-
-    Parameters
-    ----------
-    feature : int or None, default=None
-        Index of the feature to split on.
-    threshold : float or None, default=None
-        Threshold value for the split.
-    left : _TreeNode or None, default=None
-        Left child node.
-    right : _TreeNode or None, default=None
-        Right child node.
-    value : float or None, default=None
-        Prediction value if this is a leaf node.
-    """
-
+    """Internal node structure for decision tree."""
     def __init__(
         self,
         feature: Optional[int] = None,
@@ -45,19 +32,18 @@ class _BaseDecisionTree:
     Parameters
     ----------
     max_depth : int or None, default=None
-        Maximum depth of the tree. If None, nodes are expanded until all leaves are pure
-        or contain fewer than min_samples_split samples.
+        Maximum tree depth.
     min_samples_split : int, default=2
-        Minimum number of samples required to split an internal node.
+        Minimum samples to split a node.
     min_samples_leaf : int, default=1
-        Minimum number of samples required to be at a leaf node.
+        Minimum samples at a leaf.
     max_features : int or None, default=None
-        Number of features to consider when looking for the best split.
+        Number of features per split.
 
     Attributes
     ----------
     root_ : _TreeNode
-        The root node of the fitted tree.
+        Root node of fitted tree.
     n_samples_ : int
         Number of samples seen during fit.
     n_features_ : int
@@ -80,9 +66,9 @@ class _BaseDecisionTree:
         self.n_samples_ = 0
         self.n_features_ = 0
 
-    def fit(self, X, y):
+    def fit(self, X: ArrayLike, y: ArrayLike) -> "_BaseDecisionTree":
         """
-        Build a decision tree from the training set.
+        Build decision tree.
 
         Parameters
         ----------
@@ -98,10 +84,7 @@ class _BaseDecisionTree:
         """
         X = _validate_2d_array(X)
         y = _validate_1d_array(y)
-
         _check_same_length(X, y, "X", "y")
-        _check_finite_if_numeric(X)
-        _check_finite_if_numeric(y)
 
         self.n_samples_, self.n_features_ = X.shape
 
@@ -111,13 +94,11 @@ class _BaseDecisionTree:
             raise RuntimeError("Tree failed to build: _build_tree returned None.")
 
         self.root_ = root
-
         return self
 
-
-    def predict(self, X):
+    def predict(self, X: ArrayLike) -> np.ndarray:
         """
-        Predict class labels or regression values for samples in X.
+        Predict class labels or values.
 
         Parameters
         ----------
@@ -127,43 +108,37 @@ class _BaseDecisionTree:
         Returns
         -------
         ndarray of shape (n_samples,)
-            Predicted class labels (for classifier) or values (for regressor).
+            Predicted values.
         """
         if not hasattr(self, "root_") or self.root_ is None:
             raise RuntimeError("DecisionTree model has not been fit yet.")
 
         X = _validate_2d_array(X)
-        _check_finite_if_numeric(X)
 
         if X.shape[1] != self.n_features_:
             raise ValueError(
                 f"Expected {self.n_features_} features, got {X.shape[1]}."
             )
 
-        preds = np.array([self._traverse_tree(x, self.root_) for x in X])
+        return np.array([self._traverse_tree(x, self.root_) for x in X])
 
-        return preds
-    
-
-    def score(self, X, y):
+    def score(self, X: ArrayLike, y: ArrayLike) -> float:
         """
-        Return the score of the predictions on the given test data.
+        Return score of predictions.
 
         Parameters
         ----------
         X : array-like of shape (n_samples, n_features)
             Test samples.
         y : array-like of shape (n_samples,)
-            True labels or values for X.
+            True labels or values.
 
         Returns
         -------
         float
-            Mean accuracy (for classifier) or R^2 score (for regressor).
+            Mean accuracy (classifier) or R^2 (regressor).
         """
         y = _validate_1d_array(y)
-        _check_finite_if_numeric(y)
-
         preds = self.predict(X)
 
         if isinstance(self, DecisionTreeClassifier):
@@ -181,24 +156,8 @@ class _BaseDecisionTree:
         else:
             raise TypeError("Unknown tree type.")
 
-    def _build_tree(self, X, y, depth: int):
-        """
-        Recursively build the decision tree.
-
-        Parameters
-        ----------
-        X : ndarray of shape (n_samples, n_features)
-            Training data for this node.
-        y : ndarray of shape (n_samples,)
-            Target values for this node.
-        depth : int
-            Current depth in the tree.
-
-        Returns
-        -------
-        _TreeNode
-            Root node of the subtree.
-        """
+    def _build_tree(self, X: np.ndarray, y: np.ndarray, depth: int) -> _TreeNode:
+        """Recursively build tree."""
         n_samples, n_features = X.shape
 
         if len(np.unique(y)) == 1:
@@ -233,22 +192,8 @@ class _BaseDecisionTree:
             value=None,
         )
 
-    def _best_split(self, X, y):
-        """
-        Find the best split for the given data.
-
-        Parameters
-        ----------
-        X : ndarray of shape (n_samples, n_features)
-            Training data.
-        y : ndarray of shape (n_samples,)
-            Target values.
-
-        Returns
-        -------
-        tuple of (int, float) or None
-            Best feature index and threshold value, or None if no valid split found.
-        """
+    def _best_split(self, X: np.ndarray, y: np.ndarray):
+        """Find best split."""
         n_samples, n_features = X.shape
         best_gain = -np.inf
         best_split = None
@@ -282,26 +227,8 @@ class _BaseDecisionTree:
 
         return best_split
 
-    def _split(self, X, y, feature: int, threshold: float):
-        """
-        Split data based on a feature and threshold.
-
-        Parameters
-        ----------
-        X : ndarray of shape (n_samples, n_features)
-            Training data.
-        y : ndarray of shape (n_samples,)
-            Target values.
-        feature : int
-            Feature index to split on.
-        threshold : float
-            Threshold value for the split.
-
-        Returns
-        -------
-        tuple of (ndarray, ndarray, ndarray, ndarray)
-            X_left, y_left, X_right, y_right after splitting.
-        """
+    def _split(self, X: np.ndarray, y: np.ndarray, feature: int, threshold: float):
+        """Split data."""
         left_mask = X[:, feature] <= threshold
         right_mask = ~left_mask
 
@@ -310,22 +237,8 @@ class _BaseDecisionTree:
             X[right_mask], y[right_mask],
         )
 
-    def _traverse_tree(self, x, node: _TreeNode):
-        """
-        Traverse the tree to make a prediction for a single sample.
-
-        Parameters
-        ----------
-        x : ndarray of shape (n_features,)
-            Single sample to predict.
-        node : _TreeNode
-            Current node in the tree.
-
-        Returns
-        -------
-        float
-            Predicted value.
-        """
+    def _traverse_tree(self, x: np.ndarray, node: _TreeNode) -> float:
+        """Traverse tree for prediction."""
         if node is None:
             raise RuntimeError("Invalid tree structure: reached a None node.")
 
@@ -345,34 +258,14 @@ class _BaseDecisionTree:
 
         return self._traverse_tree(x, next_node)
 
-
-    def get_depth(self):
-        """
-        Get the depth of the fitted decision tree.
-
-        Returns
-        -------
-        int
-            Maximum depth of the tree.
-        """
+    def get_depth(self) -> int:
+        """Get tree depth."""
         if not hasattr(self, "root_") or self.root_ is None:
             raise RuntimeError("DecisionTree model has not been fit yet.")
         return self._get_depth(self.root_)
 
-    def _get_depth(self, node: _TreeNode):
-        """
-        Recursively compute the depth of a subtree.
-
-        Parameters
-        ----------
-        node : _TreeNode
-            Root of the subtree.
-
-        Returns
-        -------
-        int
-            Depth of the subtree.
-        """
+    def _get_depth(self, node: _TreeNode) -> int:
+        """Recursively compute depth."""
         if node is None:
             return 0
 
@@ -384,34 +277,14 @@ class _BaseDecisionTree:
 
         return 1 + max(left_depth, right_depth)
 
-
-    def get_n_leaves(self):
-        """
-        Get the number of leaves in the fitted decision tree.
-
-        Returns
-        -------
-        int
-            Number of leaf nodes.
-        """
+    def get_n_leaves(self) -> int:
+        """Get number of leaves."""
         if not hasattr(self, "root_") or self.root_ is None:
             raise RuntimeError("DecisionTree model has not been fit yet.")
         return self._get_n_leaves(self.root_)
 
-    def _get_n_leaves(self, node: _TreeNode):
-        """
-        Recursively count the number of leaves in a subtree.
-
-        Parameters
-        ----------
-        node : _TreeNode
-            Root of the subtree.
-
-        Returns
-        -------
-        int
-            Number of leaf nodes in the subtree.
-        """
+    def _get_n_leaves(self, node: _TreeNode) -> int:
+        """Recursively count leaves."""
         if node is None:
             return 0
 
@@ -423,67 +296,42 @@ class _BaseDecisionTree:
 
         return left_leaves + right_leaves
 
-    def _impurity(self, y):
-        """
-        Calculate impurity of target values.
-
-        Parameters
-        ----------
-        y : ndarray of shape (n_samples,)
-            Target values.
-
-        Returns
-        -------
-        float
-            Impurity measure.
-        """
+    def _impurity(self, y: np.ndarray) -> float:
+        """Calculate impurity."""
         raise NotImplementedError("_impurity must be implemented in subclasses.")
 
-    def _leaf_value(self, y):
-        """
-        Determine the prediction value for a leaf node.
-
-        Parameters
-        ----------
-        y : ndarray of shape (n_samples,)
-            Target values at the leaf.
-
-        Returns
-        -------
-        float
-            Prediction value for the leaf.
-        """
+    def _leaf_value(self, y: np.ndarray) -> float:
+        """Determine leaf prediction value."""
         raise NotImplementedError("_leaf_value must be implemented in subclasses.")
 
 
 class DecisionTreeClassifier(_BaseDecisionTree):
     """
-    Decision Tree Classifier using CART algorithm.
+    Decision Tree Classifier.
 
     Parameters
     ----------
     max_depth : int or None, default=None
-        Maximum depth of the tree. If None, nodes are expanded until all leaves are pure
-        or contain fewer than min_samples_split samples.
+        Maximum tree depth.
     min_samples_split : int, default=2
-        Minimum number of samples required to split an internal node.
+        Minimum samples to split a node.
     min_samples_leaf : int, default=1
-        Minimum number of samples required to be at a leaf node.
+        Minimum samples at a leaf.
     max_features : int or None, default=None
-        Number of features to consider when looking for the best split.
-    criterion : {'gini', 'entropy'}, default='gini'
-        Function to measure the quality of a split.
+        Number of features per split.
+    criterion : {"gini", "entropy"}, default="gini"
+        Split quality measure.
 
     Attributes
     ----------
     root_ : _TreeNode
-        The root node of the fitted tree.
+        Root node of fitted tree.
     n_samples_ : int
         Number of samples seen during fit.
     n_features_ : int
         Number of features seen during fit.
     criterion : str
-        The criterion used to measure split quality.
+        Criterion used.
     """
 
     def __init__(
@@ -506,20 +354,8 @@ class DecisionTreeClassifier(_BaseDecisionTree):
 
         self.criterion = criterion
 
-    def _impurity(self, y):
-        """
-        Calculate impurity using Gini index or entropy.
-
-        Parameters
-        ----------
-        y : ndarray of shape (n_samples,)
-            Target class labels.
-
-        Returns
-        -------
-        float
-            Impurity value (Gini index or entropy).
-        """
+    def _impurity(self, y: np.ndarray) -> float:
+        """Calculate impurity."""
         values, counts = np.unique(y, return_counts=True)
         p = counts / len(y)
 
@@ -532,52 +368,39 @@ class DecisionTreeClassifier(_BaseDecisionTree):
         else:
             raise ValueError(f"Unknown criterion '{self.criterion}'.")
 
-    def _leaf_value(self, y):
-        """
-        Determine the majority class for a leaf node.
-
-        Parameters
-        ----------
-        y : ndarray of shape (n_samples,)
-            Target class labels at the leaf.
-
-        Returns
-        -------
-        float
-            Majority class label.
-        """
+    def _leaf_value(self, y: np.ndarray) -> float:
+        """Determine majority class."""
         values, counts = np.unique(y, return_counts=True)
         return values[np.argmax(counts)]
 
 
 class DecisionTreeRegressor(_BaseDecisionTree):
     """
-    Decision Tree Regressor using CART algorithm.
+    Decision Tree Regressor.
 
     Parameters
     ----------
     max_depth : int or None, default=None
-        Maximum depth of the tree. If None, nodes are expanded until all leaves contain
-        fewer than min_samples_split samples.
+        Maximum tree depth.
     min_samples_split : int, default=2
-        Minimum number of samples required to split an internal node.
+        Minimum samples to split a node.
     min_samples_leaf : int, default=1
-        Minimum number of samples required to be at a leaf node.
+        Minimum samples at a leaf.
     max_features : int or None, default=None
-        Number of features to consider when looking for the best split.
-    criterion : {'mse'}, default='mse'
-        Function to measure the quality of a split. Only 'mse' (mean squared error) is supported.
+        Number of features per split.
+    criterion : {"mse"}, default="mse"
+        Split quality measure.
 
     Attributes
     ----------
     root_ : _TreeNode
-        The root node of the fitted tree.
+        Root node of fitted tree.
     n_samples_ : int
         Number of samples seen during fit.
     n_features_ : int
         Number of features seen during fit.
     criterion : str
-        The criterion used to measure split quality.
+        Criterion used.
     """
 
     def __init__(
@@ -600,36 +423,11 @@ class DecisionTreeRegressor(_BaseDecisionTree):
 
         self.criterion = criterion
 
-
-    def _impurity(self, y):
-        """
-        Calculate variance (mean squared error from mean) for regression.
-
-        Parameters
-        ----------
-        y : ndarray of shape (n_samples,)
-            Target values.
-
-        Returns
-        -------
-        float
-            Variance of the target values.
-        """
+    def _impurity(self, y: np.ndarray) -> float:
+        """Calculate variance."""
         mu = np.mean(y)
         return np.mean((y - mu) ** 2)
 
-    def _leaf_value(self, y):
-        """
-        Determine the mean value for a leaf node.
-
-        Parameters
-        ----------
-        y : ndarray of shape (n_samples,)
-            Target values at the leaf.
-
-        Returns
-        -------
-        float
-            Mean of the target values.
-        """
+    def _leaf_value(self, y: np.ndarray) -> float:
+        """Determine mean value."""
         return float(np.mean(y))

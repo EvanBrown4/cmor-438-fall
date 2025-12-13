@@ -1,11 +1,12 @@
 import numpy as np
 import pandas as pd
 import warnings
-from typing import Literal, Optional, Union, Tuple
+from typing import Union
 
 from src.rice_ml.utilities._validation import *
 
 ArrayLike = Union[list, tuple, np.ndarray, pd.Series, pd.DataFrame]
+
 
 class LogisticRegression:
     """
@@ -14,27 +15,35 @@ class LogisticRegression:
     Parameters
     ----------
     fit_intercept : bool, default=True
-        Whether to calculate the intercept for this model.
+        Whether to calculate the intercept.
     lr : float, default=0.1
-        Learning rate for gradient descent.
+        Learning rate.
     max_iter : int, default=1000
-        Maximum number of iterations for gradient descent.
+        Maximum iterations.
     tol : float, default=1e-3
-        Tolerance for stopping criterion.
+        Tolerance for stopping.
     penalty : str, default="l2"
-        Type of regularization penalty. Currently only "l2" is supported.
+        Regularization penalty.
     C : float, default=1.0
-        Inverse of regularization strength; smaller values specify stronger regularization.
+        Inverse regularization strength.
     
     Attributes
     ----------
     coef_ : ndarray of shape (n_features_in,)
-        Estimated coefficients (including intercept if fit_intercept=True).
+        Estimated coefficients.
     n_features_in : int
-        Number of features seen during fit (including intercept if fit_intercept=True).
+        Number of features seen during fit.
     """
 
-    def __init__(self, fit_intercept=True, lr=0.1, max_iter=1000, tol=1e-3, penalty="l2", C=1.0):
+    def __init__(
+        self,
+        fit_intercept: bool = True,
+        lr: float = 0.1,
+        max_iter: int = 1000,
+        tol: float = 1e-3,
+        penalty: str = "l2",
+        C: float = 1.0
+    ):
         self.fit_intercept = fit_intercept
         self.lr = lr
         self.max_iter = max_iter
@@ -42,38 +51,12 @@ class LogisticRegression:
         self.penalty = penalty
         self.C = C
 
-    def _add_intercept(self, X):
-        """
-        Add intercept column to feature matrix.
-
-        Parameters
-        ----------
-        X : ndarray of shape (n_samples, n_features)
-            Feature matrix.
-
-        Returns
-        -------
-        ndarray of shape (n_samples, n_features + 1)
-            Feature matrix with intercept column prepended.
-        """
-
+    def _add_intercept(self, X: np.ndarray) -> np.ndarray:
+        """Add intercept column."""
         return np.c_[np.ones(X.shape[0]), X]
 
-    def _sigmoid(self, z):
-        """
-        Compute sigmoid function using numerically stable implementation.
-
-        Parameters
-        ----------
-        z : array-like
-            Input values.
-
-        Returns
-        -------
-        ndarray
-            Sigmoid function evaluated at z.
-        """
-
+    def _sigmoid(self, z: np.ndarray) -> np.ndarray:
+        """Compute sigmoid function."""
         z = np.asarray(z, dtype=float)
         out = np.empty_like(z)
 
@@ -86,28 +69,25 @@ class LogisticRegression:
 
         return out
 
-    def fit(self, X, y):
+    def fit(self, X: ArrayLike, y: ArrayLike) -> "LogisticRegression":
         """
-        Fit the logistic regression model using gradient descent.
+        Fit the logistic regression model.
 
         Parameters
         ----------
         X : array-like of shape (n_samples, n_features)
             Training data.
         y : array-like of shape (n_samples,)
-            Target values. Must be binary (0 or 1).
+            Target values (0 or 1).
 
         Returns
         -------
         self : object
             Fitted estimator.
         """
-
         X = _validate_2d_array(X)
         y = _validate_1d_array(y)
         _check_same_length(X, y, "X", "y")
-        _check_finite_if_numeric(X)
-        _check_finite_if_numeric(y)
 
         unique = np.unique(y)
         if not np.all(np.isin(unique, [0, 1])):
@@ -120,7 +100,6 @@ class LogisticRegression:
         self.coef_ = np.zeros(self.n_features_in)
 
         prev_loss = np.inf
-
         converged = False
 
         for _ in range(self.max_iter):
@@ -153,9 +132,9 @@ class LogisticRegression:
 
         return self
 
-    def predict_proba(self, X):
+    def predict_proba(self, X: ArrayLike) -> np.ndarray:
         """
-        Compute probability estimates for each class.
+        Compute probability estimates.
 
         Parameters
         ----------
@@ -165,15 +144,12 @@ class LogisticRegression:
         Returns
         -------
         ndarray of shape (n_samples, 2)
-            Probability of the sample for each class in the model.
-            Column 0 is probability of class 0, column 1 is probability of class 1.
+            Probabilities for each class.
         """
-
         if not hasattr(self, "coef_"):
             raise RuntimeError("Model has not been fit yet.")
 
         X = _validate_2d_array(X)
-        _check_finite_if_numeric(X)
 
         if self.fit_intercept:
             X = self._add_intercept(X)
@@ -182,12 +158,11 @@ class LogisticRegression:
             raise ValueError("Input should have the same number of features as the fitted X.")
 
         probs = self._sigmoid(X @ self.coef_)
-
         return np.column_stack([1 - probs, probs])
 
-    def predict(self, X):
+    def predict(self, X: ArrayLike) -> np.ndarray:
         """
-        Predict class labels for samples in X.
+        Predict class labels.
 
         Parameters
         ----------
@@ -197,32 +172,27 @@ class LogisticRegression:
         Returns
         -------
         ndarray of shape (n_samples,)
-            Predicted class labels (0 or 1).
+            Predicted labels (0 or 1).
         """
-
         probs = self.predict_proba(X)[:, 1]
         return (probs >= 0.5).astype(int)
 
-    def score(self, X, y):
+    def score(self, X: ArrayLike, y: ArrayLike) -> float:
         """
-        Return the mean accuracy on the given test data and labels.
+        Return mean accuracy.
 
         Parameters
         ----------
         X : array-like of shape (n_samples, n_features)
             Test samples.
         y : array-like of shape (n_samples,)
-            True labels for X.
+            True labels.
 
         Returns
         -------
         float
-            Mean accuracy of predictions.
+            Mean accuracy.
         """
-        
         y = _validate_1d_array(y)
-        _check_finite_if_numeric(y)
-
         y_pred = self.predict(X)
-
         return np.mean(y_pred == y)
