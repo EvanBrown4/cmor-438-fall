@@ -152,12 +152,6 @@ def _weights_from_distances(dist: np.ndarray, scheme: str, eps: float = 1e-12) -
     ndarray of shape (n_query, k)
         Non-normalized weights.
 
-    Notes
-    -----
-    - Uniform weighting assigns equal weight to all neighbors.
-    - Distance weighting uses inverse distances, but if any exact
-      duplicates exist (d=0), weights are assigned only to those
-      zero-distance neighbors.
     """
     ## Uniform weighting: all ones.
     if scheme == "uniform":

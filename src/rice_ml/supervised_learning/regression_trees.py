@@ -1,91 +1,55 @@
 import numpy as np
-from typing import Optional, Literal
+import pandas as pd
+from typing import Optional, Literal, Union
 
 from src.rice_ml.utilities import *
 from src.rice_ml.utilities._validation import *
 
-class _TreeNode:
-    """
-    Internal node structure for decision tree.
+ArrayLike = Union[list, tuple, np.ndarray, pd.Series, pd.DataFrame]
 
-    Parameters
-    ----------
-    feature_idx : int or None, optional
-        Index of the feature used for splitting at this node.
-    threshold : float or None, optional
-        Threshold value for the split.
-    left : _TreeNode or None, optional
-        Left child node (samples <= threshold).
-    right : _TreeNode or None, optional
-        Right child node (samples > threshold).
-    value : float or None, optional
-        Predicted value for leaf nodes (mean of target values).
-    """
+
+class _TreeNode:
+    """Internal node structure for decision tree."""
     def __init__(
         self,
         *,
-        feature_idx=None,
-        threshold=None,
-        left=None,
-        right=None,
-        value=None,
+        feature_idx: Optional[int] = None,
+        threshold: Optional[float] = None,
+        left: Optional["_TreeNode"] = None,
+        right: Optional["_TreeNode"] = None,
+        value: Optional[float] = None,
     ):
         self.feature_idx = feature_idx
         self.threshold = threshold
         self.left = left
         self.right = right
-        self.value = value  # float output (mean of y)
+        self.value = value
+
 
 
 class DecisionTreeRegressor:
     """
-    CART-style decision tree regressor using variance reduction.
-
-    A decision tree regressor that recursively partitions the feature space
-    to minimize the variance of target values within each partition. Uses
-    the mean squared error (MSE) reduction criterion for splitting decisions.
+    CART-style decision tree regressor.
 
     Parameters
     ----------
     max_depth : int or None, default=None
-        Maximum depth of the tree. If None, nodes are expanded until all
-        leaves contain fewer than min_samples_split samples or are pure.
+        Maximum tree depth.
     min_samples_split : int, default=2
-        Minimum number of samples required to split an internal node.
+        Minimum samples to split a node.
     min_samples_leaf : int, default=1
-        Minimum number of samples required to be at a leaf node.
+        Minimum samples at a leaf.
     max_features : int, float, or None, default=None
-        Number of features to consider when looking for the best split:
-        - If int, consider `max_features` features at each split.
-        - If float, consider `int(max_features * n_features)` features.
-        - If None, consider all features.
+        Number of features per split.
     random_state : int or None, default=None
-        Controls the randomness of the feature sampling when max_features
-        is not None. Pass an int for reproducible output across function calls.
+        Random seed for feature sampling.
 
     Attributes
     ----------
     n_features_in : int
         Number of features seen during fit.
     root_ : _TreeNode
-        The root node of the fitted tree.
-
-    Examples
-    --------
-    >>> from src.rice_ml.supervised_learning.regression_trees import DecisionTreeRegressor
-    >>> import numpy as np
-    >>> X = np.array([[0], [1], [2], [3]])
-    >>> y = np.array([0.0, 1.0, 2.0, 3.0])
-    >>> reg = DecisionTreeRegressor(max_depth=2)
-    >>> reg.fit(X, y)
-    >>> reg.predict([[1.5]])
-    array([1.5])
-
-    Notes
-    -----
-    Decision trees can overfit easily on training data, especially when
-    max_depth is not limited. Consider using ensemble methods like Random
-    Forest or Gradient Boosting for better generalization.
+        Root node of fitted tree.
     """
 
     def __init__(
@@ -102,55 +66,32 @@ class DecisionTreeRegressor:
         self.max_features = max_features
         self.random_state = random_state
 
-    def fit(self, X, y):
+    def fit(self, X: ArrayLike, y: ArrayLike) -> "DecisionTreeRegressor":
         """
-        Build a decision tree regressor from the training set (X, y).
+        Build decision tree regressor.
 
         Parameters
         ----------
         X : array-like of shape (n_samples, n_features)
             Training data.
         y : array-like of shape (n_samples,)
-            Target values (real numbers).
+            Target values.
 
         Returns
         -------
         self : object
             Fitted estimator.
-
-        Raises
-        ------
-        ValueError
-            If X and y have different lengths.
         """
         X = _validate_2d_array(X)
         y = _validate_1d_array(y)
         _check_same_length(X, y, "X", "y")
-        _check_finite_if_numeric(X)
-        _check_finite_if_numeric(y)
 
         self.n_features_in = X.shape[1]
-        self.root_ = self._build_tree(X, y, depth=0)
+        self.root_: _TreeNode = self._build_tree(X, y, depth=0)
         return self
 
-    def _build_tree(self, X, y, depth):
-        """
-        Recursively build the decision tree.
-
-        Parameters
-        ----------
-        X : ndarray of shape (n_samples, n_features)
-            Training data subset for this node.
-        y : ndarray of shape (n_samples,)
-            Target values for this node.
-        depth : int
-            Current depth in the tree.
-
-        Returns
-        -------
-        _TreeNode
-            The constructed tree node (internal or leaf).
-        """
+    def _build_tree(self, X: np.ndarray, y: np.ndarray, depth: int) -> _TreeNode:
+        """Recursively build tree."""
         n, d = X.shape
 
         if (
@@ -178,72 +119,22 @@ class DecisionTreeRegressor:
             right=right,
         )
     
-    def _make_leaf(self, y):
-        """
-        Create a leaf node with the mean of target values.
-
-        Parameters
-        ----------
-        y : ndarray of shape (n_samples,)
-            Target values for this leaf.
-
-        Returns
-        -------
-        _TreeNode
-            Leaf node with predicted value set to mean(y).
-        """
+    def _make_leaf(self, y: np.ndarray) -> _TreeNode:
+        """Create leaf node."""
         return _TreeNode(value=float(np.mean(y)))
     
-    def _variance(self, y):
-        """
-        Compute total variance (sum of squared deviations).
-
-        Parameters
-        ----------
-        y : ndarray of shape (n_samples,)
-            Target values.
-
-        Returns
-        -------
-        float
-            Total variance (variance * n_samples).
-        """
+    def _variance(self, y: np.ndarray) -> float:
+        """Compute total variance."""
         return np.var(y) * len(y)
     
-    def _best_split(self, X, y, features):
-        """
-        Find the best split for the given data and feature subset.
-
-        Searches over all candidate thresholds for each feature to find
-        the split that minimizes the total variance of the resulting
-        child nodes.
-
-        Parameters
-        ----------
-        X : ndarray of shape (n_samples, n_features)
-            Training data.
-        y : ndarray of shape (n_samples,)
-            Target values.
-        features : array-like of int
-            Indices of features to consider for splitting.
-
-        Returns
-        -------
-        dict or None
-            Dictionary containing split information:
-            - 'loss': Total variance after split
-            - 'feature': Feature index for split
-            - 'threshold': Threshold value for split
-            - 'left': Tuple of (X_left, y_left)
-            - 'right': Tuple of (X_right, y_right)
-            Returns None if no valid split is found.
-        """
+    def _best_split(self, X: np.ndarray, y: np.ndarray, features):
+        """Find best split."""
         best = {
             "loss": np.inf,
             "feature": None,
             "threshold": None,
-            "left": None,     # (X_left, y_left)
-            "right": None,    # (X_right, y_right)
+            "left": None,
+            "right": None,
         }
 
         for f in features:
@@ -271,32 +162,13 @@ class DecisionTreeRegressor:
                     best["left"] = (X[left_mask], yL)
                     best["right"] = (X[right_mask], yR)
 
-        # no valid split  
         if best["feature"] is None:
             return None
 
         return best
-
     
-    def _get_feature_subset(self, d):
-        """
-        Sample a subset of features for splitting.
-
-        Parameters
-        ----------
-        d : int
-            Total number of features.
-
-        Returns
-        -------
-        range or ndarray
-            Indices of features to consider for splitting.
-
-        Raises
-        ------
-        ValueError
-            If max_features has an invalid type.
-        """
+    def _get_feature_subset(self, d: int):
+        """Sample feature subset."""
         rng = np.random.default_rng(self.random_state)
 
         if self.max_features is None:
@@ -311,9 +183,9 @@ class DecisionTreeRegressor:
 
         return rng.choice(d, size=k, replace=False)
     
-    def predict(self, X):
+    def predict(self, X: ArrayLike) -> np.ndarray:
         """
-        Predict regression target for X.
+        Predict regression values.
 
         Parameters
         ----------
@@ -324,72 +196,51 @@ class DecisionTreeRegressor:
         -------
         ndarray of shape (n_samples,)
             Predicted values.
-
-        Raises
-        ------
-        RuntimeError
-            If the model has not been fitted yet.
-        ValueError
-            If X has a different number of features than seen during fit.
         """
         if not hasattr(self, "root_"):
             raise RuntimeError("Model not fit yet.")
 
         X = _validate_2d_array(X)
-        _check_finite_if_numeric(X)
 
         if X.shape[1] != self.n_features_in:
             raise ValueError("Feature mismatch.")
 
         return np.array([self._predict_row(x, self.root_) for x in X])
     
-    def _predict_row(self, x, node):
-        """
-        Predict a single sample by traversing the tree.
-
-        Parameters
-        ----------
-        x : ndarray of shape (n_features,)
-            Single sample to predict.
-        node : _TreeNode
-            Current node in the tree.
-
-        Returns
-        -------
-        float
-            Predicted value for the sample.
-        """
+    def _predict_row(self, x: np.ndarray, node: _TreeNode) -> float:
         if node.value is not None:
             return node.value
+
+        assert node.left is not None
+        assert node.right is not None
+        assert node.feature_idx is not None
+        assert node.threshold is not None
 
         if x[node.feature_idx] <= node.threshold:
             return self._predict_row(x, node.left)
         else:
             return self._predict_row(x, node.right)
 
-    def score(self, X, y):
-        """
-        Return the coefficient of determination R^2 of the prediction.
 
-        The coefficient R^2 is defined as (1 - u/v), where u is the residual
-        sum of squares ((y_true - y_pred)^2).sum() and v is the total sum of
-        squares ((y_true - y_true.mean())^2).sum(). The best possible score
-        is 1.0 and it can be negative (because the model can be arbitrarily
-        worse).
+    def score(self, X: ArrayLike, y: ArrayLike) -> float:
+        """
+        Return R^2 score.
 
         Parameters
         ----------
         X : array-like of shape (n_samples, n_features)
             Test samples.
         y : array-like of shape (n_samples,)
-            True values for X.
+            True values.
 
         Returns
         -------
         float
-            R^2 score of self.predict(X) with respect to y.
+            R^2 score.
         """
+        y = _validate_1d_array(y)
         y_pred = self.predict(X)
+        
         ss_res = np.sum((y - y_pred) ** 2)
         ss_tot = np.sum((y - y.mean()) ** 2)
         return 1 - ss_res / ss_tot
