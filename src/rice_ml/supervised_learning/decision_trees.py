@@ -98,6 +98,7 @@ class _BaseDecisionTree:
         """
         X = _validate_2d_array(X)
         y = _validate_1d_array(y)
+        y = y.astype(int)
 
         _check_same_length(X, y, "X", "y")
         _check_finite_if_numeric(X)
@@ -255,7 +256,17 @@ class _BaseDecisionTree:
 
         parent_impurity = self._impurity(y)
 
-        for feature in range(n_features):
+        if self.max_features is None:
+            features = range(n_features)
+        else:
+            rng = np.random.default_rng(42)
+            features = rng.choice(
+                n_features,
+                size=min(self.max_features, n_features),
+                replace=False,
+            )
+
+        for feature in features:
             values = np.unique(X[:, feature])
 
             if len(values) <= 1:
@@ -503,7 +514,7 @@ class DecisionTreeClassifier(_BaseDecisionTree):
 
         if criterion not in ("gini", "entropy"):
             raise ValueError(f"Unknown criterion '{criterion}'. Expected 'gini' or 'entropy'.")
-
+        
         self.criterion = criterion
 
     def _impurity(self, y):
@@ -607,7 +618,7 @@ class DecisionTreeRegressor(_BaseDecisionTree):
 
         if criterion != "mse":
             raise ValueError(f"Unknown criterion '{criterion}'. Only 'mse' is supported.")
-
+        
         self.criterion = criterion
 
 
