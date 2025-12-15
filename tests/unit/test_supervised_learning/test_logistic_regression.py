@@ -1,7 +1,6 @@
 import pytest
 import numpy as np
-from src.rice_ml.supervised_learning.linear_regression import LinearRegression
-from src.rice_ml.supervised_learning.logistic_regression import LogisticRegression
+from rice_ml.supervised_learning.logistic_regression import LogisticRegression
 
 #------------------------------
 ## Logistic Regression Tests

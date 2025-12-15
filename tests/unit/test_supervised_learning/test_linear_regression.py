@@ -1,6 +1,6 @@
 import pytest
 import numpy as np
-from src.rice_ml.supervised_learning.linear_regression import LinearRegression
+from rice_ml.supervised_learning.linear_regression import LinearRegression
 
 #------------------------------
 ## Linear Regression Tests

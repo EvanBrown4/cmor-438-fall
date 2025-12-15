@@ -1,6 +1,6 @@
 import pytest
 import numpy as np
-from src.rice_ml.supervised_learning.knn import KNNClassifier, KNNRegressor
+from rice_ml.supervised_learning.knn import KNNClassifier, KNNRegressor
 
 #------------------------------
 ## KNN Classifier Tests
