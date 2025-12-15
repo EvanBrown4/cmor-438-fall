@@ -2,7 +2,8 @@ import pytest
 import numpy as np
 import pandas as pd
 import warnings
-from src.rice_ml import normalize
+import re
+from rice_ml.utilities import normalize
 
 ## normalize() testing
 
@@ -304,7 +305,7 @@ def test_invalid_method():
     """Test with invalid method"""
     x = np.array([1.0, 2.0, 3.0])
     
-    with pytest.raises(ValueError, match="'method' must be one of"):
+    with pytest.raises(ValueError, match="method must be one of: zscore, minmax, robust, l1, l2"):
         normalize(x, method="invalid") # type: ignore
 
 def test_invalid_axis_value():
@@ -337,28 +338,28 @@ def test_invalid_feature_range_wrong_length():
     """Test with feature_range of wrong length"""
     x = np.array([1.0, 2.0, 3.0])
     
-    with pytest.raises(TypeError, match="'feature_range' must be a tuple of two numbers"):
+    with pytest.raises(TypeError, match=re.escape("'feature_range' must be a tuple (min, max)")):
         normalize(x, method="minmax", feature_range=(0, 1, 2)) # type: ignore
 
 def test_invalid_feature_range_non_numeric():
     """Test with non-numeric feature_range elements"""
     x = np.array([1.0, 2.0, 3.0])
     
-    with pytest.raises(TypeError, match="'feature_range' values must be numeric"):
+    with pytest.raises(TypeError, match="'feature_range' must contain only numeric values"):
         normalize(x, method="minmax", feature_range=("0", "1")) # type: ignore
 
 def test_invalid_feature_range_min_greater_than_max():
     """Test with min > max in feature_range"""
     x = np.array([1.0, 2.0, 3.0])
     
-    with pytest.raises(ValueError, match="Min value for feature_range must be less than max"):
+    with pytest.raises(ValueError, match="feature_range min must be < max"):
         normalize(x, method="minmax", feature_range=(1.0, 0.0))
 
 def test_invalid_feature_range_min_equals_max():
     """Test with min = max in feature_range"""
     x = np.array([1.0, 2.0, 3.0])
     
-    with pytest.raises(ValueError, match="Min value for feature_range must be less than max"):
+    with pytest.raises(ValueError, match="feature_range min must be < max"):
         normalize(x, method="minmax", feature_range=(1.0, 1.0))
 
 

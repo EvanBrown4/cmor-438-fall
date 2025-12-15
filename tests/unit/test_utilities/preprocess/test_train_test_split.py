@@ -1,7 +1,7 @@
 import pytest
 import numpy as np
 import pandas as pd
-from src.rice_ml import train_test_split
+from rice_ml.utilities import train_test_split
 
 ## train_test_split testing
 
