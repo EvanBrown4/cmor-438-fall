@@ -12,6 +12,7 @@ __all__ = [
     "_check_numeric_dtypes",
     "_check_finite_if_numeric",
     "_check_consistent_types",
+    "_check_square_matrix",
 ]
 
 ArrayLike = Union[list, tuple, np.ndarray, pd.Series, pd.DataFrame]
@@ -180,3 +181,10 @@ def _validate_axis(axis: Optional[int], ndim: int) -> Optional[int]:
     if axis >= ndim or axis < -ndim:
         raise ValueError(f"'axis'={axis} out of bounds for array with {ndim} dimensions.")
     return axis
+
+def _check_square_matrix(X: np.ndarray, name: str = "adjacency") -> None:
+    """Raise if X is not a square matrix."""
+    if X.shape[0] != X.shape[1]:
+        raise ValueError(
+            f"{name} must be a square (n_nodes x n_nodes) matrix, got shape {X.shape}."
+        )

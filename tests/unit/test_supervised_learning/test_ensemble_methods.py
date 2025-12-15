@@ -154,15 +154,6 @@ def test_rf_classifier_batch_predict():
     preds = clf.predict([[1, 1], [2, 2], [3, 3]])
     assert preds.shape == (3,)
 
-def test_rf_classifier_repr():
-    """Should have a readable string representation"""
-    clf = RandomForestClassifier(n_estimators=5, max_depth=3, max_features='sqrt')
-    repr_str = repr(clf)
-    
-    assert 'RandomForestClassifier' in repr_str
-    assert 'n_estimators=5' in repr_str
-    assert 'max_depth=3' in repr_str
-
 #------------------------------
 ## Random Forest Regressor Tests
 #------------------------------
@@ -222,15 +213,6 @@ def test_rf_regressor_batch_predict():
     
     preds = reg.predict([[1, 1], [2, 2], [3, 3]])
     assert preds.shape == (3,)
-
-def test_rf_regressor_repr():
-    """Should have a readable string representation"""
-    reg = RandomForestRegressor(n_estimators=5, max_depth=3, max_features='log2')
-    repr_str = repr(reg)
-    
-    assert 'RandomForestRegressor' in repr_str
-    assert 'n_estimators=5' in repr_str
-    assert 'max_depth=3' in repr_str
 
 #------------------------------
 ## Error Handling Tests

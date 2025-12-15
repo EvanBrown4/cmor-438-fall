@@ -1,5 +1,6 @@
 import numpy as np
-from typing import Optional, Literal
+import pandas as pd
+from typing import Optional, Literal, Union
 
 from rice_ml.utilities import *
 from rice_ml.utilities._validation import *
@@ -9,6 +10,8 @@ from rice_ml.supervised_learning.decision_trees import (
     DecisionTreeRegressor,
 )
 
+ArrayLike = Union[list, tuple, np.ndarray, pd.Series, pd.DataFrame]
+
 
 class RandomForestClassifier:
     """
@@ -17,50 +20,32 @@ class RandomForestClassifier:
     Parameters
     ----------
     n_estimators : int, default=100
-        The number of trees in the forest.
+        Number of trees.
     max_depth : int or None, default=None
-        Maximum depth of each tree. If None, nodes are expanded until all leaves
-        are pure or contain fewer than min_samples_split samples.
+        Maximum tree depth.
     min_samples_split : int, default=2
-        Minimum number of samples required to split an internal node.
+        Minimum samples to split a node.
     min_samples_leaf : int, default=1
-        Minimum number of samples required to be at a leaf node.
-    max_features : {'sqrt', 'log2', 'all'} or int or None, default='sqrt'
-        Number of features to consider when looking for the best split:
-        - If 'sqrt', then max_features=sqrt(n_features).
-        - If 'log2', then max_features=log2(n_features).
-        - If 'all' or None, then max_features=n_features.
-        - If int, then consider max_features features at each split.
+        Minimum samples at a leaf.
+    max_features : {"sqrt", "log2", "all"} or int or None, default="sqrt"
+        Number of features per split.
     bootstrap : bool, default=True
-        Whether bootstrap samples are used when building trees. If False, the
-        whole dataset is used to build each tree.
+        Whether to use bootstrap samples.
     random_state : int or None, default=None
-        Controls the randomness of the bootstrapping and feature sampling.
-        Pass an int for reproducible output across multiple function calls.
+        Random seed.
 
     Attributes
     ----------
     trees_ : list of DecisionTreeClassifier
-        The collection of fitted sub-estimators.
+        Fitted trees.
     _feature_indices_ : list of ndarray
-        The feature indices selected for each tree.
+        Feature indices per tree.
     n_samples_ : int
         Number of samples seen during fit.
     n_features_ : int
         Number of features seen during fit.
     _n_features_per_tree : int
-        Number of features used per tree (resolved from max_features).
-
-    Examples
-    --------
-    >>> from src.rice_ml.supervised_learning.ensemble_methods import RandomForestClassifier
-    >>> import numpy as np
-    >>> X = np.array([[0, 0], [1, 1], [2, 2], [3, 3]])
-    >>> y = np.array([0, 0, 1, 1])
-    >>> clf = RandomForestClassifier(n_estimators=10, random_state=42)
-    >>> clf.fit(X, y)
-    >>> clf.predict([[1.5, 1.5]])
-    array([1])
+        Number of features per tree.
     """
 
     def __init__(
@@ -81,23 +66,22 @@ class RandomForestClassifier:
         self.bootstrap = bootstrap
         self.random_state = random_state
 
-        # Will be set during fit
         self.trees_: list[DecisionTreeClassifier] = []
         self._feature_indices_: list[np.ndarray] = []
         self.n_samples_: int = 0
         self.n_features_: int = 0
         self._n_features_per_tree: int = 0
 
-    def fit(self, X, y):
+    def fit(self, X: ArrayLike, y: ArrayLike) -> "RandomForestClassifier":
         """
-        Build a forest of trees from the training set.
+        Build forest of trees.
 
         Parameters
         ----------
         X : array-like of shape (n_samples, n_features)
             Training data.
         y : array-like of shape (n_samples,)
-            Target class labels.
+            Target labels.
 
         Returns
         -------
@@ -106,10 +90,7 @@ class RandomForestClassifier:
         """
         X = _validate_2d_array(X)
         y = _validate_1d_array(y)
-
         _check_same_length(X, y, "X", "y")
-        _check_finite_if_numeric(X)
-        _check_finite_if_numeric(y)
 
         self._validate_parameters()
 
@@ -122,17 +103,14 @@ class RandomForestClassifier:
         rng = np.random.default_rng(self.random_state)
 
         for _ in range(self.n_estimators):
-            # Bootstrap sampling over rows
             if self.bootstrap:
                 X_train, y_train = self._bootstrap_sample(X, y, rng)
             else:
                 X_train, y_train = X, y
 
-            # Feature subsampling (true RF)
             feat_idx = self._feature_subsample(self.n_features_, rng)
             X_sub = X_train[:, feat_idx]
 
-            # Train a fresh decision tree on this sample
             tree = DecisionTreeClassifier(
                 max_depth=self.max_depth,
                 min_samples_split=self.min_samples_split,
@@ -146,9 +124,9 @@ class RandomForestClassifier:
 
         return self
 
-    def predict(self, X):
+    def predict(self, X: ArrayLike) -> np.ndarray:
         """
-        Predict class labels for samples in X.
+        Predict class labels.
 
         Parameters
         ----------
@@ -158,26 +136,23 @@ class RandomForestClassifier:
         Returns
         -------
         ndarray of shape (n_samples,)
-            Predicted class labels (majority vote from all trees).
+            Predicted labels (majority vote).
         """
         if len(self.trees_) == 0:
             raise RuntimeError("RandomForestClassifier has not been fit yet.")
 
         X = _validate_2d_array(X)
-        _check_finite_if_numeric(X)
 
         if X.shape[1] != self.n_features_:
             raise ValueError(
                 f"Expected {self.n_features_} features, got {X.shape[1]}."
             )
 
-        # Collect predictions from all trees: shape (n_estimators, n_samples)
         all_preds = np.array([
             tree.predict(X[:, feat_idx])
             for tree, feat_idx in zip(self.trees_, self._feature_indices_)
         ])
 
-        # Majority vote per sample
         final = []
         for i in range(all_preds.shape[1]):
             vals, counts = np.unique(all_preds[:, i], return_counts=True)
@@ -185,78 +160,41 @@ class RandomForestClassifier:
 
         return np.array(final, dtype=int)
 
-    def score(self, X, y):
+    def score(self, X: ArrayLike, y: ArrayLike) -> float:
         """
-        Return the mean accuracy on the given test data and labels.
+        Return mean accuracy.
 
         Parameters
         ----------
         X : array-like of shape (n_samples, n_features)
             Test samples.
         y : array-like of shape (n_samples,)
-            True labels for X.
+            True labels.
 
         Returns
         -------
         float
-            Mean accuracy of self.predict(X) with respect to y.
+            Mean accuracy.
         """
         y = _validate_1d_array(y)
         preds = self.predict(X)
         return np.mean(preds == y)
 
-    def _bootstrap_sample(self, X, y, rng: np.random.Generator):
-        """
-        Create a bootstrap sample from the dataset.
-
-        Parameters
-        ----------
-        X : ndarray of shape (n_samples, n_features)
-            Training data.
-        y : ndarray of shape (n_samples,)
-            Target values.
-        rng : np.random.Generator
-            Random number generator.
-
-        Returns
-        -------
-        tuple of (ndarray, ndarray)
-            Bootstrap sample of X and y (sampled with replacement).
-        """
+    def _bootstrap_sample(self, X: np.ndarray, y: np.ndarray, rng: np.random.Generator):
+        """Create bootstrap sample."""
         n = X.shape[0]
         idx = rng.integers(0, n, size=n)
         return X[idx], y[idx]
 
     def _feature_subsample(self, n_features: int, rng: np.random.Generator):
-        """
-        Select a random subset of features for a tree.
-
-        Parameters
-        ----------
-        n_features : int
-            Total number of features available.
-        rng : np.random.Generator
-            Random number generator.
-
-        Returns
-        -------
-        ndarray
-            Indices of selected features (sampled without replacement).
-        """
+        """Select random feature subset."""
         k = self._n_features_per_tree
         if k > n_features:
             raise ValueError("Resolved max_features exceeds n_features.")
         return rng.choice(n_features, size=k, replace=False)
 
     def _validate_parameters(self):
-        """
-        Validate hyperparameters.
-
-        Raises
-        ------
-        ValueError
-            If any parameter is invalid.
-        """
+        """Validate hyperparameters."""
         if not isinstance(self.n_estimators, int) or self.n_estimators <= 0:
             raise ValueError("n_estimators must be a positive integer.")
 
@@ -283,23 +221,10 @@ class RandomForestClassifier:
             raise ValueError("bootstrap must be a boolean.")
 
     def _resolve_max_features(self) -> int:
-        """
-        Convert max_features parameter into an integer feature count.
-
-        Returns
-        -------
-        int
-            Number of features to use per tree.
-
-        Raises
-        ------
-        ValueError
-            If max_features is invalid or out of range.
-        """
+        """Convert max_features to integer."""
         n = self.n_features_
         mf = self.max_features
 
-        # Use all features
         if mf is None or mf == "all":
             return n
 
@@ -316,73 +241,40 @@ class RandomForestClassifier:
 
         raise ValueError("Invalid max_features value.")
 
-    def __repr__(self):
-        return (
-            f"RandomForestClassifier("
-            f"n_estimators={self.n_estimators}, "
-            f"max_depth={self.max_depth}, "
-            f"min_samples_leaf={self.min_samples_leaf}, "
-            f"max_features={self.max_features})"
-        )
-
 
 class RandomForestRegressor:
     """
-    Random Forest Regressor using CART-style decision trees.
-
-    A random forest is a meta estimator that fits a number of decision tree
-    regressors on various sub-samples of the dataset and uses averaging to
-    improve the predictive accuracy and control over-fitting. The sub-sample
-    size is controlled with the bootstrap parameter. Each tree is trained on
-    a bootstrap sample of the data and a random subset of features.
+    Random Forest Regressor.
 
     Parameters
     ----------
     n_estimators : int, default=100
-        The number of trees in the forest.
+        Number of trees.
     max_depth : int or None, default=None
-        Maximum depth of each tree. If None, nodes are expanded until all leaves
-        contain fewer than min_samples_split samples.
+        Maximum tree depth.
     min_samples_split : int, default=2
-        Minimum number of samples required to split an internal node.
+        Minimum samples to split a node.
     min_samples_leaf : int, default=1
-        Minimum number of samples required to be at a leaf node.
-    max_features : {'sqrt', 'log2', 'all'} or int or None, default='sqrt'
-        Number of features to consider when looking for the best split:
-        - If 'sqrt', then max_features=sqrt(n_features).
-        - If 'log2', then max_features=log2(n_features).
-        - If 'all' or None, then max_features=n_features.
-        - If int, then consider max_features features at each split.
+        Minimum samples at a leaf.
+    max_features : {"sqrt", "log2", "all"} or int or None, default="sqrt"
+        Number of features per split.
     bootstrap : bool, default=True
-        Whether bootstrap samples are used when building trees. If False, the
-        whole dataset is used to build each tree.
+        Whether to use bootstrap samples.
     random_state : int or None, default=None
-        Controls the randomness of the bootstrapping and feature sampling.
-        Pass an int for reproducible output across multiple function calls.
+        Random seed.
 
     Attributes
     ----------
     trees_ : list of DecisionTreeRegressor
-        The collection of fitted sub-estimators.
+        Fitted trees.
     _feature_indices_ : list of ndarray
-        The feature indices selected for each tree.
+        Feature indices per tree.
     n_samples_ : int
         Number of samples seen during fit.
     n_features_ : int
         Number of features seen during fit.
     _n_features_per_tree : int
-        Number of features used per tree (resolved from max_features).
-
-    Examples
-    --------
-    >>> from src.rice_ml.supervised_learning.ensemble_methods import RandomForestRegressor
-    >>> import numpy as np
-    >>> X = np.array([[0, 0], [1, 1], [2, 2], [3, 3]])
-    >>> y = np.array([0.0, 1.0, 2.0, 3.0])
-    >>> reg = RandomForestRegressor(n_estimators=10, random_state=42)
-    >>> reg.fit(X, y)
-    >>> reg.predict([[1.5, 1.5]])
-    array([1.5])
+        Number of features per tree.
     """
 
     def __init__(
@@ -409,9 +301,9 @@ class RandomForestRegressor:
         self.n_features_: int = 0
         self._n_features_per_tree: int = 0
 
-    def fit(self, X, y):
+    def fit(self, X: ArrayLike, y: ArrayLike) -> "RandomForestRegressor":
         """
-        Build a forest of trees from the training set.
+        Build forest of trees.
 
         Parameters
         ----------
@@ -427,10 +319,7 @@ class RandomForestRegressor:
         """
         X = _validate_2d_array(X)
         y = _validate_1d_array(y)
-
         _check_same_length(X, y, "X", "y")
-        _check_finite_if_numeric(X)
-        _check_finite_if_numeric(y)
 
         self._validate_parameters()
 
@@ -443,17 +332,14 @@ class RandomForestRegressor:
         rng = np.random.default_rng(self.random_state)
 
         for _ in range(self.n_estimators):
-            # Bootstrap sampling
             if self.bootstrap:
                 X_train, y_train = self._bootstrap_sample(X, y, rng)
             else:
                 X_train, y_train = X, y
 
-            # Feature subsampling
             feat_idx = self._feature_subsample(self.n_features_, rng)
             X_sub = X_train[:, feat_idx]
 
-            # Train tree
             tree = DecisionTreeRegressor(
                 max_depth=self.max_depth,
                 min_samples_split=self.min_samples_split,
@@ -467,9 +353,9 @@ class RandomForestRegressor:
 
         return self
 
-    def predict(self, X):
+    def predict(self, X: ArrayLike) -> np.ndarray:
         """
-        Predict regression values for samples in X.
+        Predict regression values.
 
         Parameters
         ----------
@@ -479,13 +365,12 @@ class RandomForestRegressor:
         Returns
         -------
         ndarray of shape (n_samples,)
-            Predicted values (average of predictions from all trees).
+            Predicted values (average).
         """
         if len(self.trees_) == 0:
             raise RuntimeError("RandomForestRegressor has not been fit yet.")
 
         X = _validate_2d_array(X)
-        _check_finite_if_numeric(X)
 
         if X.shape[1] != self.n_features_:
             raise ValueError(
@@ -499,21 +384,21 @@ class RandomForestRegressor:
 
         return np.mean(all_preds, axis=0)
 
-    def score(self, X, y):
+    def score(self, X: ArrayLike, y: ArrayLike) -> float:
         """
-        Return the coefficient of determination R^2 of the prediction.
+        Return R^2 score.
 
         Parameters
         ----------
         X : array-like of shape (n_samples, n_features)
             Test samples.
         y : array-like of shape (n_samples,)
-            True values for X.
+            True values.
 
         Returns
         -------
         float
-            R^2 score of self.predict(X) with respect to y.
+            R^2 score.
         """
         y = _validate_1d_array(y)
         preds = self.predict(X)
@@ -526,58 +411,21 @@ class RandomForestRegressor:
 
         return 1 - ss_res / ss_tot
 
-    def _bootstrap_sample(self, X, y, rng: np.random.Generator):
-        """
-        Create a bootstrap sample from the dataset.
-
-        Parameters
-        ----------
-        X : ndarray of shape (n_samples, n_features)
-            Training data.
-        y : ndarray of shape (n_samples,)
-            Target values.
-        rng : np.random.Generator
-            Random number generator.
-
-        Returns
-        -------
-        tuple of (ndarray, ndarray)
-            Bootstrap sample of X and y (sampled with replacement).
-        """
+    def _bootstrap_sample(self, X: np.ndarray, y: np.ndarray, rng: np.random.Generator):
+        """Create bootstrap sample."""
         n = X.shape[0]
         idx = rng.integers(0, n, size=n)
         return X[idx], y[idx]
 
     def _feature_subsample(self, n_features: int, rng: np.random.Generator):
-        """
-        Select a random subset of features for a tree.
-
-        Parameters
-        ----------
-        n_features : int
-            Total number of features available.
-        rng : np.random.Generator
-            Random number generator.
-
-        Returns
-        -------
-        ndarray
-            Indices of selected features (sampled without replacement).
-        """
+        """Select random feature subset."""
         k = self._n_features_per_tree
         if k > n_features:
             raise ValueError("Resolved max_features exceeds n_features.")
         return rng.choice(n_features, size=k, replace=False)
 
     def _validate_parameters(self):
-        """
-        Validate hyperparameters.
-
-        Raises
-        ------
-        ValueError
-            If any parameter is invalid.
-        """
+        """Validate hyperparameters."""
         if not isinstance(self.n_estimators, int) or self.n_estimators <= 0:
             raise ValueError("n_estimators must be a positive integer.")
 
@@ -604,19 +452,7 @@ class RandomForestRegressor:
             raise ValueError("bootstrap must be a boolean.")
 
     def _resolve_max_features(self) -> int:
-        """
-        Convert max_features parameter into an integer feature count.
-
-        Returns
-        -------
-        int
-            Number of features to use per tree.
-
-        Raises
-        ------
-        ValueError
-            If max_features is invalid or out of range.
-        """
+        """Convert max_features to integer."""
         n = self.n_features_
         mf = self.max_features
 
@@ -632,12 +468,3 @@ class RandomForestRegressor:
             return mf
 
         raise ValueError("Invalid max_features value.")
-
-    def __repr__(self):
-        return (
-            f"RandomForestRegressor("
-            f"n_estimators={self.n_estimators}, "
-            f"max_depth={self.max_depth}, "
-            f"min_samples_leaf={self.min_samples_leaf}, "
-            f"max_features={self.max_features})"
-        )

@@ -1,6 +1,10 @@
 import numpy as np
+import pandas as pd
+from typing import Union
 
 from rice_ml.utilities._validation import *
+
+ArrayLike = Union[list, tuple, np.ndarray, pd.Series, pd.DataFrame]
 
 
 class LinearRegression:
@@ -10,22 +14,22 @@ class LinearRegression:
     Parameters
     ----------
     fit_intercept : bool, default=True
-        Whether to calculate the intercept for this model.
+        Whether to calculate the intercept.
     
     Attributes
     ----------
     coef_ : ndarray of shape (n_features,)
-        Estimated coefficients for the linear regression problem.
+        Estimated coefficients.
     intercept_ : float
-        Independent term in the linear model. Set to 0.0 if fit_intercept=False.
+        Intercept term.
     n_features_in : int
         Number of features seen during fit.
     """
 
-    def __init__(self, fit_intercept=True):
+    def __init__(self, fit_intercept: bool = True):
         self.fit_intercept = fit_intercept
 
-    def fit(self, X, y):
+    def fit(self, X: ArrayLike, y: ArrayLike) -> "LinearRegression":
         """
         Fit linear model.
 
@@ -41,12 +45,9 @@ class LinearRegression:
         self : object
             Fitted estimator.
         """
-
         X = _validate_2d_array(X)
         y = _validate_1d_array(y)
         _check_same_length(X, y, "X", "y")
-        _check_finite_if_numeric(X)
-        _check_finite_if_numeric(y)
 
         self.n_features_in = X.shape[1]
 
@@ -63,7 +64,7 @@ class LinearRegression:
 
         return self
 
-    def predict(self, X):
+    def predict(self, X: ArrayLike) -> np.ndarray:
         """
         Predict using the linear model.
 
@@ -75,43 +76,39 @@ class LinearRegression:
         Returns
         -------
         ndarray of shape (n_samples,)
-            Returns predicted values.
+            Predicted values.
         """
-
         if not hasattr(self, "coef_"):
             raise RuntimeError("Model has not been fit yet.")
         
         X = _validate_2d_array(X)
+        
         if X.shape[1] != self.n_features_in:
             raise ValueError("Input should have the same number of features as the fitted X.")
         
-        y_pred = np.dot(X, self.coef_) + self.intercept_
+        return np.dot(X, self.coef_) + self.intercept_
 
-        return y_pred
-        
-
-    def score(self, X, y):
+    def score(self, X: ArrayLike, y: ArrayLike) -> float:
         """
-        Return the coefficient of determination (R^2) of the prediction.
+        Return R^2 score.
 
         Parameters
         ----------
         X : array-like of shape (n_samples, n_features)
             Test samples.
         y : array-like of shape (n_samples,)
-            True values for X.
+            True values.
 
         Returns
         -------
         float
-            R^2 score. Best possible score is 1.0.
+            R^2 score.
         """
-        
         y = _validate_1d_array(y)
         y_pred = self.predict(X)
 
-        rss = np.sum((y-y_pred)**2)
-        tss = np.sum((y-y.mean())**2)
+        rss = np.sum((y - y_pred) ** 2)
+        tss = np.sum((y - y.mean()) ** 2)
 
         if tss == 0:
             return 1.0 if rss > 0 else 0.0
