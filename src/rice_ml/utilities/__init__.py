@@ -1,6 +1,7 @@
 from .metrics import *
 from .preprocess import *
 from .postprocess import *
+from .results import *
 from ._validation import *
 
 __all__ = [
@@ -10,4 +11,6 @@ __all__ = [
     "manhattan_dist",
     "majority_label",
     "average_label",
+    "confusion_matrix",
+    "plot_confusion_matrix",
 ]

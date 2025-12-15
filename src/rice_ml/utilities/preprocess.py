@@ -9,10 +9,14 @@ Functions
 -------
 train_test_split
     Split array-like objects into train and test subsets.
+    
+normalize
+    Normalize the data using your chosen metric.
 """
 import numpy as np
 import pandas as pd
-from typing import Optional, Union, Literal
+from typing import Optional, Union
+import numbers
 from warnings import warn
 from ._validation import *
 
@@ -99,13 +103,13 @@ def train_test_split(
         # Split up within each label to build the train and test indices.
         train_idxs = []
         test_idxs = []
+        rng = np.random.default_rng(random_state)
         for _, idxs in label_to_idx.items():
             n = len(idxs)
 
             # Number of testing samples.
             test_quant = int(np.ceil(n * test_size))
             if shuffle:
-                rng = np.random.default_rng(random_state)
                 rng.shuffle(idxs)
             train_idxs.append(idxs[:-test_quant])
             test_idxs.append(idxs[-test_quant:])
@@ -141,99 +145,95 @@ def train_test_split(
         return (X_train, X_test)
 
 def normalize(
-        x: ArrayLike,
-        method: str = "zscore",
-        axis: Optional[int] = None,
-        feature_range: Optional[tuple[Union[float, int], Union[float, int]]] = None
-) -> np.ndarray:
+    x: ArrayLike,
+    method: str = "zscore",
+    axis: Optional[int] = None,
+    feature_range: Optional[tuple[Union[float, int], Union[float, int]]] = None,
+    stats: Optional[dict] = None,
+    return_stats: bool = False,
+) -> np.ndarray | tuple[np.ndarray, dict]:
     """
     Normalizes an array using one of several normalization methods.
-    Supports z-score, min-max, robust, L1, and L2 normalization.
 
-    Inputs
-    -------
-    x: ArrayLike - element type must be a number (floats or ints).
-        The array to be normalized. Can be 1-dimensional or 2-dimensional.
+    Stateful methods (zscore, minmax, robust) may return statistics
+    computed from the data and reuse them to avoid data leakage.
 
-    method: "zscore" | "minmax" | "robust" | "l1" | "l2"
-        The method x will be normalized with.
-        Default: zscore.
-
-    axis: int
-        The axis to normalize on. Must be -ndim <= axis < ndim.
-        Default: None. Automatically set to 0 for 2D arrays (normalize per feature).
-
-    feature_range: tuple(float | int, float | int), optional
-        Used only when method="minmax"
-        The desired output range (min, max) for the scaled data.
-        Default: None. Automatically set to (0.0, 1.0) if method="minmax"
-
-    Output
-    -------
-    The normalized version of x as an np.ndarray.
-
-    Examples
-    -------
-    >>> import numpy as np
-    >>> x = np.array([[1,2], [3,4]])
-    >>> normalize(x, method="zscore")
-    array([[-1.0, -1.0],
-           [ 1.0,  1.0]])
+    Stateless methods (l1, l2) do not support statistics.
     """
 
     x = _validate_1d_or_2d(x)
     axis = _validate_axis(axis, x.ndim)
-    
+
     if feature_range is not None and method != "minmax":
         warn(
-            f"'feature_range' was provided but will be ignored since method='{method}'. It is only used for 'minmax' normalization.",
-            UserWarning
+            f"'feature_range' was provided but will be ignored since method is not 'minmax'.",
+            UserWarning,
         )
-    
+
     match method:
         case "zscore":
-            std = x.std(axis=axis, keepdims=True)
-            std = np.where(std == 0, 1.0, std) # Divide by zero prevention.
-            return (x - x.mean(axis=axis, keepdims=True)) / std
+            if stats is None:
+                mean = x.mean(axis=axis, keepdims=True)
+                std = x.std(axis=axis, keepdims=True)
+                std = np.where(std == 0, 1.0, std)
+                stats = {"mean": mean, "std": std}
+            else:
+                mean = stats["mean"]
+                std = stats["std"]
+
+            x_norm = (x - mean) / std
+            return (x_norm, stats) if return_stats else x_norm
+
         case "minmax":
             if feature_range is not None:
                 if not isinstance(feature_range, tuple) or len(feature_range) != 2:
-                    raise TypeError("'feature_range' must be a tuple of two numbers (min, max)")
-                if not all(isinstance(v, (int, float)) for v in feature_range):
-                    raise TypeError("'feature_range' values must be numeric (int or float)")
-                
-                
+                    raise TypeError("'feature_range' must be a tuple (min, max)")
                 if feature_range[0] >= feature_range[1]:
-                    raise ValueError(
-                        f"Min value for feature_range must be less than max value. Input: {feature_range}"
-                    )
+                    raise ValueError("feature_range min must be < max")
+                if not all(isinstance(v, numbers.Real) for v in feature_range):
+                    raise TypeError("'feature_range' must contain only numeric values")
+                a, b = map(float, feature_range)
             else:
-                feature_range = (0.0, 1.0)
-            
-            # Convert range boundaries to floats.
-            a, b = map(float, feature_range)
+                a, b = 0.0, 1.0
 
-            x_min = x.min(axis=axis, keepdims=True)
-            x_max = x.max(axis=axis, keepdims=True)
-            denom = np.where(x_max - x_min == 0, 1.0, x_max - x_min) # Divide by zero prevention.
-            return a + ((x - x_min) / denom) * (b-a)
+            if stats is None:
+                x_min = x.min(axis=axis, keepdims=True)
+                x_max = x.max(axis=axis, keepdims=True)
+                denom = np.where(x_max - x_min == 0, 1.0, x_max - x_min)
+                stats = {"min": x_min, "denom": denom, "range": (a, b)}
+            else:
+                x_min = stats["min"]
+                denom = stats["denom"]
+                a, b = stats["range"]
+
+            x_norm = a + ((x - x_min) / denom) * (b - a)
+            return (x_norm, stats) if return_stats else x_norm
+
         case "robust":
-            x_med = np.median(x, axis=axis, keepdims=True)
-            x_75 = np.percentile(x, q=75, axis=axis, keepdims=True)
-            x_25 = np.percentile(x, q=25, axis=axis, keepdims=True)
-            denom = np.where(x_75 - x_25 == 0, 1.0, x_75 - x_25) # Divide by zero prevention.
-            return (x - x_med) / (denom)
+            if stats is None:
+                med = np.median(x, axis=axis, keepdims=True)
+                q75 = np.percentile(x, 75, axis=axis, keepdims=True)
+                q25 = np.percentile(x, 25, axis=axis, keepdims=True)
+                denom = np.where(q75 - q25 == 0, 1.0, q75 - q25)
+                stats = {"median": med, "denom": denom}
+            else:
+                med = stats["median"]
+                denom = stats["denom"]
+
+            x_norm = (x - med) / denom
+            return (x_norm, stats) if return_stats else x_norm
+
         case "l1":
             denom = np.sum(np.abs(x), axis=axis, keepdims=True)
-            denom = np.where(denom == 0, 1.0, denom) # Divide by zero prevention.
+            denom = np.where(denom == 0, 1.0, denom)
             return x / denom
+
         case "l2":
-            sum_sq = np.sum(x**2, axis=axis, keepdims=True)
-            sum_sq = np.where(sum_sq == 0, 1.0, sum_sq) # Divide by zero prevention.
-            return x / np.sqrt(sum_sq)
+            denom = np.sqrt(np.sum(x ** 2, axis=axis, keepdims=True))
+            denom = np.where(denom == 0, 1.0, denom)
+            return x / denom
+
         case _:
-            raise ValueError(f"'method' must be one of: zscore, minmax, robust, l1, l2. Input was {method}")
-
-
-# def scale(x: np.array):
-#     pass
+            raise ValueError(
+                "method must be one of: zscore, minmax, robust, l1, l2"
+            )

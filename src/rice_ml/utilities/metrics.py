@@ -14,7 +14,7 @@ from ._validation import *
 
 __all__ = [
     'euclidean_dist',
-    'manhattan_dist'
+    'manhattan_dist',
 ]
 
 ArrayLike = Union[list, tuple, np.ndarray, pd.Series, pd.DataFrame]
