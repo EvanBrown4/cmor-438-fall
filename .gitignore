@@ -2,3 +2,4 @@
 __pycache__
 .vscode
 local_test.py
+rice_ml.egg-info
