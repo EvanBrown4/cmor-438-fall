@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 from typing import Optional, Union
 
-from src.rice_ml.utilities._validation import *
+from rice_ml.utilities._validation import *
 
 ArrayLike = Union[list, tuple, np.ndarray, pd.Series, pd.DataFrame]
 
@@ -33,7 +33,18 @@ class PerceptronClassifier:
     errors_ : list of int
         Number of misclassifications per epoch.
     n_iter_ : int
-        Number of epochs run.
+        Number of iterations (epochs) run during training.
+
+    Examples
+    --------
+    >>> from src.rice_ml.supervised_learning.perceptron import PerceptronClassifier
+    >>> import numpy as np
+    >>> X = np.array([[0], [1], [2], [3]])
+    >>> y = np.array([0, 0, 1, 1])
+    >>> clf = PerceptronClassifier(max_iter=100)
+    >>> clf.fit(X, y)
+    >>> clf.predict([[1.5]])
+    array([1])
     """
 
     def __init__(

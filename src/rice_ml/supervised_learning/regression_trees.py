@@ -2,8 +2,8 @@ import numpy as np
 import pandas as pd
 from typing import Optional, Literal, Union
 
-from src.rice_ml.utilities import *
-from src.rice_ml.utilities._validation import *
+from rice_ml.utilities import *
+from rice_ml.utilities._validation import *
 
 ArrayLike = Union[list, tuple, np.ndarray, pd.Series, pd.DataFrame]
 
@@ -29,7 +29,7 @@ class _TreeNode:
 
 class DecisionTreeRegressor:
     """
-    CART-style decision tree regressor.
+    CART-style decision tree regressor using variance reduction.
 
     Parameters
     ----------
@@ -49,7 +49,27 @@ class DecisionTreeRegressor:
     n_features_in : int
         Number of features seen during fit.
     root_ : _TreeNode
-        Root node of fitted tree.
+        The root node of the fitted tree.
+
+    Examples
+    --------
+    >>> from src.rice_ml.supervised_learning.regression_trees import DecisionTreeRegressor
+    >>> import numpy as np
+    >>> X = np.array([[0], [1], [2], [3]])
+    >>> y = np.array([0.0, 1.0, 2.0, 3.0])
+    >>> reg = DecisionTreeRegressor(max_depth=2)
+    >>> reg.fit(X, y)
+    >>> reg.predict([[1.5]])
+    array([1.5])
+
+    Note:
+    This is also implemented in ensemble_methods.py. They are
+    implemented slightly differently, because in that class it uses
+    a base class as well to reduce repetitive code between it and the classifier version of it.
+
+    In this class on the other hand, it is built contained completely in
+    that file/class. While they do the same thing, they are both implemented
+    for ease of access for users.
     """
 
     def __init__(

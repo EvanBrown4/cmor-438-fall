@@ -2,8 +2,8 @@ import numpy as np
 import pandas as pd
 from typing import Optional, Literal, Union
 
-from src.rice_ml.utilities import *
-from src.rice_ml.utilities._validation import *
+from rice_ml.utilities import *
+from rice_ml.utilities._validation import *
 
 ArrayLike = Union[list, tuple, np.ndarray, pd.Series, pd.DataFrame]
 
@@ -84,6 +84,8 @@ class _BaseDecisionTree:
         """
         X = _validate_2d_array(X)
         y = _validate_1d_array(y)
+        y = y.astype(int)
+
         _check_same_length(X, y, "X", "y")
 
         self.n_samples_, self.n_features_ = X.shape
@@ -200,7 +202,17 @@ class _BaseDecisionTree:
 
         parent_impurity = self._impurity(y)
 
-        for feature in range(n_features):
+        if self.max_features is None:
+            features = range(n_features)
+        else:
+            rng = np.random.default_rng(42)
+            features = rng.choice(
+                n_features,
+                size=min(self.max_features, n_features),
+                replace=False,
+            )
+
+        for feature in features:
             values = np.unique(X[:, feature])
 
             if len(values) <= 1:
@@ -351,7 +363,7 @@ class DecisionTreeClassifier(_BaseDecisionTree):
 
         if criterion not in ("gini", "entropy"):
             raise ValueError(f"Unknown criterion '{criterion}'. Expected 'gini' or 'entropy'.")
-
+        
         self.criterion = criterion
 
     def _impurity(self, y: np.ndarray) -> float:
@@ -400,7 +412,17 @@ class DecisionTreeRegressor(_BaseDecisionTree):
     n_features_ : int
         Number of features seen during fit.
     criterion : str
-        Criterion used.
+        The criterion used to measure split quality.
+
+    Note:
+    This is also implemented in regression_trees.py. They are
+    implemented slightly differently, because in this class it uses
+    a base class as well to reduce repetitive code between this class
+    and the classifier version of it.
+
+    In the regression_trees class, it is built contained completely in
+    that file/class. While they do the same thing, they are both implemented
+    for ease of access for users.
     """
 
     def __init__(
@@ -420,7 +442,7 @@ class DecisionTreeRegressor(_BaseDecisionTree):
 
         if criterion != "mse":
             raise ValueError(f"Unknown criterion '{criterion}'. Only 'mse' is supported.")
-
+        
         self.criterion = criterion
 
     def _impurity(self, y: np.ndarray) -> float:

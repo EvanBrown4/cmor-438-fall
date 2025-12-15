@@ -1,6 +1,6 @@
 import pytest
 import numpy as np
-from src.rice_ml.supervised_learning.regression_trees import DecisionTreeRegressor
+from rice_ml.supervised_learning.regression_trees import DecisionTreeRegressor
 
 
 #------------------------------

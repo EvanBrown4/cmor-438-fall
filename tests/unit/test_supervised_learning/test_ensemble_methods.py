@@ -1,6 +1,6 @@
 import pytest
 import numpy as np
-from src.rice_ml.supervised_learning.ensemble_methods import (
+from rice_ml.supervised_learning.ensemble_methods import (
     RandomForestClassifier,
     RandomForestRegressor,
 )

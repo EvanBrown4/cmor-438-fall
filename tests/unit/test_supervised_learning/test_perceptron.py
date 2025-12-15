@@ -1,6 +1,6 @@
 import pytest
 import numpy as np
-from src.rice_ml.supervised_learning.perceptron import PerceptronClassifier
+from rice_ml.supervised_learning.perceptron import PerceptronClassifier
 
 #------------------------------
 ## Perceptron Classifier Tests

@@ -6,6 +6,8 @@ from src.rice_ml.utilities._validation import *
 
 ArrayLike = Union[list, tuple, np.ndarray, pd.Series, pd.DataFrame]
 
+ArrayLike = Union[list, tuple, np.ndarray, pd.Series, pd.DataFrame]
+
 
 class MLPClassifier:
     """

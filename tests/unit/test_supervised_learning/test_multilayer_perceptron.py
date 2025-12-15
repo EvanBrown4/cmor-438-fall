@@ -1,6 +1,6 @@
 import pytest
 import numpy as np
-from src.rice_ml.supervised_learning.multilayer_perceptron import MLPClassifier
+from rice_ml.supervised_learning.multilayer_perceptron import MLPClassifier
 
 #------------------------------
 ## MLP Classifier Tests

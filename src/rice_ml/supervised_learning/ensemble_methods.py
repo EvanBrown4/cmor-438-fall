@@ -2,10 +2,10 @@ import numpy as np
 import pandas as pd
 from typing import Optional, Literal, Union
 
-from src.rice_ml.utilities import *
-from src.rice_ml.utilities._validation import *
+from rice_ml.utilities import *
+from rice_ml.utilities._validation import *
 
-from src.rice_ml.supervised_learning.decision_trees import (
+from rice_ml.supervised_learning.decision_trees import (
     DecisionTreeClassifier,
     DecisionTreeRegressor,
 )
@@ -15,8 +15,8 @@ ArrayLike = Union[list, tuple, np.ndarray, pd.Series, pd.DataFrame]
 
 class RandomForestClassifier:
     """
-    Random Forest Classifier.
-
+    Random Forest Classifier using CART-style decision trees.
+    
     Parameters
     ----------
     n_estimators : int, default=100
@@ -158,7 +158,7 @@ class RandomForestClassifier:
             vals, counts = np.unique(all_preds[:, i], return_counts=True)
             final.append(vals[np.argmax(counts)])
 
-        return np.array(final)
+        return np.array(final, dtype=int)
 
     def score(self, X: ArrayLike, y: ArrayLike) -> float:
         """
