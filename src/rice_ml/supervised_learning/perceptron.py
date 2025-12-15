@@ -1,7 +1,7 @@
 import numpy as np
 from typing import Optional
 
-from src.rice_ml.utilities._validation import *
+from rice_ml.utilities._validation import *
 
 
 class PerceptronClassifier:

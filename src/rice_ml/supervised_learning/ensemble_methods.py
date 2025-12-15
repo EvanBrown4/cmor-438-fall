@@ -1,10 +1,10 @@
 import numpy as np
 from typing import Optional, Literal
 
-from src.rice_ml.utilities import *
-from src.rice_ml.utilities._validation import *
+from rice_ml.utilities import *
+from rice_ml.utilities._validation import *
 
-from src.rice_ml.supervised_learning.decision_trees import (
+from rice_ml.supervised_learning.decision_trees import (
     DecisionTreeClassifier,
     DecisionTreeRegressor,
 )
@@ -183,7 +183,7 @@ class RandomForestClassifier:
             vals, counts = np.unique(all_preds[:, i], return_counts=True)
             final.append(vals[np.argmax(counts)])
 
-        return np.array(final)
+        return np.array(final, dtype=int)
 
     def score(self, X, y):
         """

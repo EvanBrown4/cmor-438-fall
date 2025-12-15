@@ -1,8 +1,7 @@
 import numpy as np
-from typing import Optional, Literal
 
-from src.rice_ml.utilities import *
-from src.rice_ml.utilities._validation import *
+from rice_ml.utilities import *
+from rice_ml.utilities._validation import *
 
 class _TreeNode:
     """
@@ -76,6 +75,15 @@ class DecisionTreeRegressor:
     >>> reg.fit(X, y)
     >>> reg.predict([[1.5]])
     array([1.5])
+
+    Note:
+    This is also implemented in ensemble_methods.py. They are
+    implemented slightly differently, because in that class it uses
+    a base class as well to reduce repetitive code between it and the classifier version of it.
+
+    In this class on the other hand, it is built contained completely in
+    that file/class. While they do the same thing, they are both implemented
+    for ease of access for users.
     """
 
     def __init__(

@@ -1,12 +1,15 @@
 import numpy as np
-from typing import List, Tuple, Optional
+import pandas as pd
+from typing import Union, Tuple, Optional
 
-from src.rice_ml.utilities._validation import (
+from rice_ml.utilities._validation import (
     _validate_2d_array,
     _validate_1d_array,
     _check_same_length,
     _check_finite_if_numeric,
 )
+
+ArrayLike = Union[list, tuple, np.ndarray, pd.Series, pd.DataFrame]
 
 
 class MLPClassifier:
@@ -264,7 +267,7 @@ class MLPClassifier:
             self.weights_[i] -= self.lr * grads_w[i]
             self.biases_[i] -= self.lr * grads_b[i]
 
-    def fit(self, X, y):
+    def fit(self, X: ArrayLike, y: ArrayLike):
         """
         Train the multi-layer perceptron on the given data.
 
@@ -321,7 +324,7 @@ class MLPClassifier:
         self.n_iter_ = epoch + 1
         return self
 
-    def predict_proba(self, X):
+    def predict_proba(self, X: ArrayLike):
         """
         Predict class probabilities for samples in X.
 
@@ -340,7 +343,7 @@ class MLPClassifier:
         y_hat = self._forward(X)
         return np.column_stack([1 - y_hat, y_hat])
 
-    def predict(self, X):
+    def predict(self, X: ArrayLike):
         """
         Predict class labels for samples in X.
 
@@ -358,7 +361,7 @@ class MLPClassifier:
         probs = self.predict_proba(X)[:, 1]
         return (probs >= 0.5).astype(int)
 
-    def score(self, X, y):
+    def score(self, X: ArrayLike, y: ArrayLike):
         """
         Return the mean accuracy on the given test data and labels.
 
@@ -374,6 +377,7 @@ class MLPClassifier:
         float
             Mean accuracy of self.predict(X) with respect to y.
         """
+        X = _validate_2d_array(X)
         preds = self.predict(X)
         y = _validate_1d_array(y)
         return np.mean(preds == y)

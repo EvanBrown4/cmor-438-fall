@@ -2,8 +2,8 @@ import numpy as np
 import pandas as pd
 from typing import Literal, Optional, Union, Tuple
 
-from src.rice_ml.utilities import *
-from src.rice_ml.utilities._validation import *
+from rice_ml.utilities import *
+from rice_ml.utilities._validation import *
 
 ArrayLike = Union[list, tuple, np.ndarray, pd.Series, pd.DataFrame]
 

@@ -1,6 +1,6 @@
 import numpy as np
 
-from src.rice_ml.utilities._validation import *
+from rice_ml.utilities._validation import *
 
 
 class LinearRegression:

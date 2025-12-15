@@ -1,9 +1,9 @@
 import numpy as np
 import pandas as pd
 import warnings
-from typing import Literal, Optional, Union, Tuple
+from typing import Union
 
-from src.rice_ml.utilities._validation import *
+from rice_ml.utilities._validation import *
 
 ArrayLike = Union[list, tuple, np.ndarray, pd.Series, pd.DataFrame]
 

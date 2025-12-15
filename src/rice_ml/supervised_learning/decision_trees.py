@@ -1,8 +1,8 @@
 import numpy as np
 from typing import Optional, Literal
 
-from src.rice_ml.utilities import *
-from src.rice_ml.utilities._validation import *
+from rice_ml.utilities import *
+from rice_ml.utilities._validation import *
 
 
 class _TreeNode:
@@ -578,6 +578,16 @@ class DecisionTreeRegressor(_BaseDecisionTree):
         Number of features seen during fit.
     criterion : str
         The criterion used to measure split quality.
+
+    Note:
+    This is also implemented in regression_trees.py. They are
+    implemented slightly differently, because in this class it uses
+    a base class as well to reduce repetitive code between this class
+    and the classifier version of it.
+
+    In the regression_trees class, it is built contained completely in
+    that file/class. While they do the same thing, they are both implemented
+    for ease of access for users.
     """
 
     def __init__(
