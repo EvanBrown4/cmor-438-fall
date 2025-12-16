@@ -8,9 +8,10 @@ Utilities are tested independently since many algorithms depend on them.
 
 ## Modules Covered
 
-- Metrics (euclidean_dist, manhattan_dist, r2_score)
-- Preprocessing utilities (normalize, train_test_split)
-- Postprocessing utilities (majority_label, average_label)
+- Metrics (Euclidean distance, manhattance distance, R^2 score)
+- Preprocessing utilities (Data normalizing, train/test splitting)
+- Postprocessing utilities (Majority and average labels)
+- Result information (Confusion matrix)
 
 ---
 
