@@ -56,15 +56,18 @@ class _BaseDecisionTree:
         min_samples_split: int = 2,
         min_samples_leaf: int = 1,
         max_features: Optional[int] = None,
+        random_state: Optional[int] = None,
     ):
         self.max_depth = max_depth
         self.min_samples_split = min_samples_split
         self.min_samples_leaf = min_samples_leaf
         self.max_features = max_features
+        self.random_state = random_state
 
         self.root_ = None
         self.n_samples_ = 0
         self.n_features_ = 0
+
 
     def fit(self, X: ArrayLike, y: ArrayLike) -> "_BaseDecisionTree":
         """
@@ -89,6 +92,8 @@ class _BaseDecisionTree:
         _check_same_length(X, y, "X", "y")
 
         self.n_samples_, self.n_features_ = X.shape
+
+        self._rng = np.random.default_rng(self.random_state)
 
         root = self._build_tree(X, y, depth=0)
 
@@ -199,13 +204,15 @@ class _BaseDecisionTree:
         if self.max_features is None:
             features = range(n_features)
         else:
-            rng = np.random.default_rng(42)
-            features = rng.choice(
-                n_features,
-                size=min(self.max_features, n_features),
-                replace=False,
-            )
-
+            if self.max_features is None:
+                features = range(n_features)
+            else:
+                features = self._rng.choice(
+                    n_features,
+                    size=min(self.max_features, n_features),
+                    replace=False,
+                )
+        
         for feature in features:
             values = np.unique(X[:, feature])
 
@@ -347,12 +354,14 @@ class DecisionTreeClassifier(_BaseDecisionTree):
         min_samples_leaf: int = 1,
         max_features: Optional[int] = None,
         criterion: Literal["gini", "entropy"] = "gini",
+        random_state: Optional[int] = None,
     ):
         super().__init__(
             max_depth=max_depth,
             min_samples_split=min_samples_split,
             min_samples_leaf=min_samples_leaf,
             max_features=max_features,
+            random_state=random_state,
         )
 
         if criterion not in ("gini", "entropy"):
@@ -426,12 +435,14 @@ class DecisionTreeRegressor(_BaseDecisionTree):
         min_samples_leaf: int = 1,
         max_features: Optional[int] = None,
         criterion: Literal["mse"] = "mse",
+        random_state: Optional[int] = None,
     ):
         super().__init__(
             max_depth=max_depth,
             min_samples_split=min_samples_split,
             min_samples_leaf=min_samples_leaf,
             max_features=max_features,
+            random_state=random_state,
         )
 
         if criterion != "mse":
