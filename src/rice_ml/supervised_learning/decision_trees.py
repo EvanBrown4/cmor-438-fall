@@ -3,6 +3,7 @@ import pandas as pd
 from typing import Optional, Literal, Union
 
 from rice_ml.utilities._validation import _validate_2d_array, _validate_1d_array, _check_same_length
+from rice_ml.utilities import r2_score
 
 ArrayLike = Union[list, tuple, np.ndarray, pd.Series, pd.DataFrame]
 
@@ -146,13 +147,7 @@ class _BaseDecisionTree:
             return np.mean(preds == y)
 
         elif isinstance(self, DecisionTreeRegressor):
-            ss_res = np.sum((y - preds) ** 2)
-            ss_tot = np.sum((y - np.mean(y)) ** 2)
-
-            if ss_tot == 0:
-                return 0.0
-
-            return 1 - ss_res / ss_tot
+            return r2_score(y, preds)
 
         else:
             raise TypeError("Unknown tree type.")

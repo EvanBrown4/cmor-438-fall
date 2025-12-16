@@ -7,6 +7,7 @@ from rice_ml.utilities._validation import (
     _validate_1d_array,
     _check_same_length,
 )
+from rice_ml.utilities import r2_score
 
 ArrayLike = Union[list, tuple, np.ndarray, pd.Series, pd.DataFrame]
 
@@ -111,10 +112,4 @@ class LinearRegression:
         y = _validate_1d_array(y)
         y_pred = self.predict(X)
 
-        rss = np.sum((y - y_pred) ** 2)
-        tss = np.sum((y - y.mean()) ** 2)
-
-        if tss == 0:
-            return 1.0 if rss > 0 else 0.0
-
-        return 1 - (rss / tss)
+        return r2_score(y, y_pred)

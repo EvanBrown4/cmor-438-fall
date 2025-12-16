@@ -9,6 +9,7 @@ __all__ = [
     "normalize",
     "euclidean_dist",
     "manhattan_dist",
+    "r2_score",
     "majority_label",
     "average_label",
     "confusion_matrix",

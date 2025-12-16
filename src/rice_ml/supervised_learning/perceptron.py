@@ -58,12 +58,15 @@ class PerceptronClassifier:
         fit_intercept: bool = True,
         shuffle: bool = True,
         tol: Optional[int] = None,
+        random_state: Optional[int] = None,
     ):
         self.lr = lr
         self.max_iter = max_iter
         self.fit_intercept = fit_intercept
         self.shuffle = shuffle
         self.tol = tol
+        self.random_state = random_state
+
 
     def _add_intercept(self, X: np.ndarray) -> np.ndarray:
         """Add intercept column."""
@@ -105,7 +108,8 @@ class PerceptronClassifier:
             X = self._add_intercept(X)
 
         self.n_features_in = X.shape[1]
-        self.coef_ = np.zeros(self.n_features_in)
+        rng = np.random.default_rng(self.random_state)
+        self.coef_ = rng.normal(scale=0.01, size=self.n_features_in)
 
         self.errors_ = []
         n = X.shape[0]
@@ -113,7 +117,8 @@ class PerceptronClassifier:
 
         for epoch in range(self.max_iter):
             if self.shuffle:
-                np.random.shuffle(idx)
+                rng.shuffle(idx)
+
 
             errors = 0
 
