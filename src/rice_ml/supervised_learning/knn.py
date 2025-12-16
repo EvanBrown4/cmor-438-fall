@@ -9,6 +9,7 @@ from rice_ml.utilities._validation import (
     _check_same_shape,
     _check_finite_if_numeric,
 )
+from rice_ml.utilities import r2_score
 
 ArrayLike = Union[list, tuple, np.ndarray, pd.Series, pd.DataFrame]
 
@@ -525,16 +526,8 @@ class KNNRegressor(_KNNBase):
             R^2 score.
         """
         _, _ = self._check_is_fitted()
-        
-        y_true = _validate_1d_array(y_true)
+
+        y = _validate_1d_array(y_true)
         y_pred = self.predict(X_test)
 
-        _check_same_length(y_true, y_pred, "y_true", "y_pred")
-
-        ss_res = np.sum((y_true - y_pred) ** 2)
-        ss_tot = np.sum((y_true - np.mean(y_true)) ** 2)
-
-        if ss_tot == 0:
-            return 0.0
-
-        return float(1 - ss_res / ss_tot)
+        return r2_score(y, y_pred)

@@ -3,7 +3,7 @@ import pandas as pd
 from typing import Optional, Literal, Union
 
 from rice_ml.utilities._validation import _validate_2d_array, _validate_1d_array, _check_same_length
-
+from rice_ml.utilities import r2_score
 from rice_ml.supervised_learning.decision_trees import (
     DecisionTreeClassifier,
     DecisionTreeRegressor,
@@ -400,15 +400,9 @@ class RandomForestRegressor:
             R^2 score.
         """
         y = _validate_1d_array(y)
-        preds = self.predict(X)
+        y_pred = self.predict(X)
 
-        ss_res = np.sum((y - preds) ** 2)
-        ss_tot = np.sum((y - np.mean(y)) ** 2)
-
-        if ss_tot == 0:
-            return 0.0
-
-        return 1 - ss_res / ss_tot
+        return r2_score(y, y_pred)
 
     def _bootstrap_sample(self, X: np.ndarray, y: np.ndarray, rng: np.random.Generator):
         """Create bootstrap sample."""

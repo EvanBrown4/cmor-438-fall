@@ -7,6 +7,7 @@ from rice_ml.utilities._validation import (
     _validate_1d_array,
     _check_same_length,
 )
+from rice_ml.utilities import r2_score
 
 ArrayLike = Union[list, tuple, np.ndarray, pd.Series, pd.DataFrame]
 
@@ -263,7 +264,5 @@ class DecisionTreeRegressor:
         """
         y = _validate_1d_array(y)
         y_pred = self.predict(X)
-        
-        ss_res = np.sum((y - y_pred) ** 2)
-        ss_tot = np.sum((y - y.mean()) ** 2)
-        return 1 - ss_res / ss_tot
+
+        return r2_score(y, y_pred)
