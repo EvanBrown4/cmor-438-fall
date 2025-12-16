@@ -6,6 +6,7 @@ __all__ = [
     'plot_confusion_matrix',
 ]
 
+
 def confusion_matrix(
     y_true: np.ndarray,
     y_pred: np.ndarray,
@@ -35,8 +36,24 @@ def confusion_matrix(
     if y_true.shape != y_pred.shape:
         raise ValueError("y_true and y_pred must have the same shape.")
 
+    # Ensure labels are integer-valued (allow floats like 0.0, 1.0)
+    if not np.all(np.equal(y_true, np.floor(y_true))):
+        raise ValueError("y_true must contain integer class labels.")
+    if not np.all(np.equal(y_pred, np.floor(y_pred))):
+        raise ValueError("y_pred must contain integer class labels.")
+
+    y_true = y_true.astype(int)
+    y_pred = y_pred.astype(int)
+
+    max_label = int(max(y_true.max(), y_pred.max()))
+
     if num_classes is None:
-        num_classes = int(max(y_true.max(), y_pred.max())) + 1
+        num_classes = max_label + 1
+    else:
+        if num_classes <= max_label:
+            raise ValueError(
+                "num_classes must be greater than the maximum class label."
+            )
 
     cm = np.zeros((num_classes, num_classes), dtype=int)
 
@@ -44,6 +61,7 @@ def confusion_matrix(
         cm[t, p] += 1
 
     return cm
+
 
 def plot_confusion_matrix(cm, class_labels=None, normalize=False):
     """
@@ -60,7 +78,8 @@ def plot_confusion_matrix(cm, class_labels=None, normalize=False):
         If True, normalize each row of the confusion matrix.
     """
     if normalize:
-        cm = cm / cm.sum(axis=1, keepdims=True)
+        row_sums = cm.sum(axis=1, keepdims=True)
+        cm = np.divide(cm, row_sums, where=row_sums != 0)
 
     fig, ax = plt.subplots(figsize=(7, 7))
     im = ax.imshow(cm, cmap="Blues")
@@ -79,10 +98,7 @@ def plot_confusion_matrix(cm, class_labels=None, normalize=False):
     for i in range(cm.shape[0]):
         for j in range(cm.shape[1]):
             value = cm[i, j]
-            if normalize:
-                text = f"{value:.2f}"
-            else:
-                text = str(int(value))
+            text = f"{value:.2f}" if normalize else str(int(value))
 
             ax.text(
                 j, i, text,
