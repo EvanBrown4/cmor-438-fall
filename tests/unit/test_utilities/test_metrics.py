@@ -1,7 +1,7 @@
 import pytest
 import numpy as np
 import re
-from src.rice_ml.utilities.metrics import euclidean_dist, manhattan_dist
+from src.rice_ml.utilities.metrics import euclidean_dist, manhattan_dist, r2_score
 
 
 #------------------------------
@@ -919,3 +919,43 @@ def test_manhattan_dist_symmetry():
     result2 = manhattan_dist(y, x)
     
     assert np.isclose(result1, result2)
+
+
+#------------------------------
+## R2 Score Tests
+#------------------------------
+
+def test_r2_score_perfect_prediction():
+    """Perfect predictions should give R^2 = 1.0"""
+    y_true = np.array([1, 2, 3, 4, 5])
+    y_pred = np.array([1, 2, 3, 4, 5])
+
+    r2 = r2_score(y_true, y_pred)
+
+    assert isinstance(r2, float)
+    assert np.isclose(r2, 1.0)
+
+
+def test_r2_score_reasonable_fit():
+    """Good but imperfect predictions should give high R^2"""
+    rng = np.random.default_rng(0)
+
+    X = rng.normal(size=(200, 2))
+    y_true = 3 * X[:, 0] - 2 * X[:, 1]
+    y_pred = y_true + rng.normal(scale=0.2, size=len(y_true))
+
+    r2 = r2_score(y_true, y_pred)
+
+    assert r2 > 0.8
+
+
+def test_r2_score_bad_fit():
+    """Uncorrelated predictions should give low or negative R^2"""
+    rng = np.random.default_rng(1)
+
+    y_true = rng.normal(size=100)
+    y_pred = rng.normal(size=100)
+
+    r2 = r2_score(y_true, y_pred)
+
+    assert r2 < 0.2
