@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 from typing import Optional, Union
 
-from src.rice_ml.utilities._validation import *
+from rice_ml.utilities._validation import _validate_2d_array
 
 ArrayLike = Union[list, tuple, np.ndarray, pd.Series, pd.DataFrame]
 

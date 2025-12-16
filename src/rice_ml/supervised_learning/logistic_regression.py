@@ -3,7 +3,11 @@ import pandas as pd
 import warnings
 from typing import Union
 
-from rice_ml.utilities._validation import *
+from rice_ml.utilities._validation import (
+    _validate_2d_array,
+    _validate_1d_array,
+    _check_same_length,
+)
 
 ArrayLike = Union[list, tuple, np.ndarray, pd.Series, pd.DataFrame]
 
