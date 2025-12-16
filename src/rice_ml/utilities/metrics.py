@@ -15,6 +15,7 @@ from ._validation import *
 __all__ = [
     'euclidean_dist',
     'manhattan_dist',
+    'r2_score',
 ]
 
 ArrayLike = Union[list, tuple, np.ndarray, pd.Series, pd.DataFrame]
@@ -129,3 +130,33 @@ def manhattan_dist(x: ArrayLike,
         if axis >= x.ndim or axis < -x.ndim:
             raise ValueError(f"'axis'={axis} out of bounds for array with {x.ndim} dims.")
     return np.sum(np.abs(x - y), axis=axis)
+
+def r2_score(y_true, y_pred):
+    """
+    Compute the coefficient of determination (R^2).
+
+    Parameters
+    ----------
+    y_true : array-like of shape (n_samples,)
+        Ground truth target values.
+    y_pred : array-like of shape (n_samples,)
+        Predicted target values.
+
+    Returns
+    -------
+    float
+        R^2 score. Best possible score is 1.0.
+    """
+    y_true = np.asarray(y_true)
+    y_pred = np.asarray(y_pred)
+
+    if y_true.shape != y_pred.shape:
+        raise ValueError("y_true and y_pred must have the same shape")
+
+    ss_res = np.sum((y_true - y_pred) ** 2)
+    ss_tot = np.sum((y_true - np.mean(y_true)) ** 2)
+
+    if ss_tot == 0:
+        return 1.0 if np.isclose(ss_res, 0.0) else 0.0
+
+    return 1 - ss_res / ss_tot
