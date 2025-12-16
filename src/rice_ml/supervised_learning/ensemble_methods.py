@@ -110,12 +110,16 @@ class RandomForestClassifier:
             feat_idx = self._feature_subsample(self.n_features_, rng)
             X_sub = X_train[:, feat_idx]
 
+            tree_seed = rng.integers(0, 2**32 - 1)
+
             tree = DecisionTreeClassifier(
                 max_depth=self.max_depth,
                 min_samples_split=self.min_samples_split,
                 min_samples_leaf=self.min_samples_leaf,
                 max_features=self._n_features_per_tree,
+                random_state=tree_seed,
             )
+
             tree.fit(X_sub, y_train)
 
             self.trees_.append(tree)
@@ -339,12 +343,16 @@ class RandomForestRegressor:
             feat_idx = self._feature_subsample(self.n_features_, rng)
             X_sub = X_train[:, feat_idx]
 
+            tree_seed = rng.integers(0, 2**32 - 1)
+
             tree = DecisionTreeRegressor(
                 max_depth=self.max_depth,
                 min_samples_split=self.min_samples_split,
                 min_samples_leaf=self.min_samples_leaf,
                 max_features=self._n_features_per_tree,
+                random_state=tree_seed,
             )
+
             tree.fit(X_sub, y_train)
 
             self.trees_.append(tree)
